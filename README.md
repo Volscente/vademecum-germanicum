@@ -19,3 +19,12 @@ Commands:
 
 - Install dependency `uv add --package backend <dependency>`
 - Run backend `uv run --package backend uvicorn main:app --reload`
+
+# Docker
+
+## Build & Start
+
+```bash
+# Compile docker-compose.yml and start
+docker compose up --build
+```

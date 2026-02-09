@@ -37,4 +37,4 @@ RUN uv sync --frozen
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the FastAPI server
-CMD ["uvicorn", "src.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.src.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
