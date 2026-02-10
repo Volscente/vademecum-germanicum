@@ -1,7 +1,7 @@
 # Use a dedicated uv image to just grab the binary (Multi-stage build - Builder image)
-FROM astral-sh/uv:0.5.21 AS uv_bin
+FROM ghcr.io/astral-sh/uv:0.5.21 AS uv_bin
 
-# Runner image (Multi-stage build)
+# Runner image (Multi-stage build - Runner image)
 FROM python:3.13-slim-bookworm
 
 # Install curl for healthchecks and delete apt-get update indices
@@ -33,8 +33,5 @@ COPY backend ./backend
 # Final sync to install the project itself
 RUN uv sync --frozen
 
-# Place the virtualenv on the path so we don't have to type 'uv run'
-ENV PATH="/app/.venv/bin:$PATH"
-
 # Run the FastAPI server
-CMD ["uvicorn", "backend.src.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--package", "backend", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
