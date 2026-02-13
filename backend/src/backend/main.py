@@ -4,9 +4,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import engine, get_db
 
-# Create the database tables on startup
-# In a real production app, we would use Alembic migrations,
-# but for our MVP, this is perfect.
+# Create the database tables on startup (no replace if they exist)
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Vademecum Germanicum API")
@@ -24,7 +22,7 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)):
 
     db.add(db_word)
     db.commit()
-    db.refresh(db_word)
+    db.refresh(db_word)  # Refresh database to get the saved word back for returning it
     return db_word
 
 

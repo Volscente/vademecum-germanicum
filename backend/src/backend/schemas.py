@@ -11,6 +11,10 @@ from .models import CategoryEnum, GenderEnum
 
 
 class WordBase(BaseModel):
+    """
+    Base word model for Data Transfer Objects (DTO) approach.
+    """
+
     word: str
     gender: Optional[GenderEnum] = GenderEnum.none
     word_nominative: Optional[str] = None
@@ -24,10 +28,18 @@ class WordBase(BaseModel):
 
 
 class WordCreate(WordBase):
-    pass  # Data required to create a word
+    """
+    Input model: data used to create a word.
+    """
+
+    pass
 
 
 class WordRead(WordBase):
+    """
+    Output model: data used to retrieve a word.
+    """
+
     id: int
     created_at: datetime
 

@@ -28,6 +28,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def get_db():
     db = SessionLocal()
     try:
-        yield db
+        yield db  # Ensure to keep conncetion open until route does its work
     finally:
         db.close()
