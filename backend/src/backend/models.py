@@ -1,5 +1,5 @@
 """
-Create SQLAlchemy ORM models for the database Data Schema.
+SQLAlchemy ORM models for the database Data Schema.
 """
 
 import enum
