@@ -14,3 +14,7 @@ docker_build:
 # Docker-compose build (recreate)
 docker_build_recreate:
     docker-compose up --build --force-recreate
+
+# Unit tests
+run_tests:
+    docker exec -it vademecum_backend uv run pytest backend/tests
