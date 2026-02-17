@@ -20,11 +20,8 @@ Commands:
 - Install dependency `uv add --package backend <dependency>`
 - Run backend `uv run --package backend uvicorn main:app --reload`
 
-# Docker
+# Usage
 
-## Build & Start
+## Justfile
 
-```bash
-# Compile docker-compose.yml and start
-docker compose up --build
-```
+The commands for running the docker-compose stack or the tests are inside the `justfile`.
