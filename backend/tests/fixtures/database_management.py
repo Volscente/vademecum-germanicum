@@ -14,14 +14,18 @@ def client():
     return TestClient(app)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def db_session():
     """
-    Provides a clean database session for each test.
-    Cleans up after the test is done.
+    Simulate the function backend/src/backend/database.get_db
+    by opening a clear rollback connection to the database.
     """
     connection = SessionLocal()
+    # Start a transaction
+    transaction = connection.begin()
     try:
         yield connection
     finally:
+        # Roll back everything done during the test
+        transaction.rollback()
         connection.close()

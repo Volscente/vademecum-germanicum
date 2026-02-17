@@ -17,4 +17,6 @@ docker_build_recreate:
 
 # Unit tests
 run_tests:
-    docker exec -it vademecum_backend uv run pytest backend/tests
+    # Create docker-compose stack and destroy after finish
+    # Run the uv in the "backend" workspace
+    docker-compose run --rm backend uv run --package backend pytest backend/tests
