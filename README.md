@@ -19,3 +19,9 @@ Commands:
 
 - Install dependency `uv add --package backend <dependency>`
 - Run backend `uv run --package backend uvicorn main:app --reload`
+
+# Usage
+
+## Justfile
+
+The commands for running the docker-compose stack or the tests are inside the `justfile`.
