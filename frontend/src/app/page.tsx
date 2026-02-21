@@ -1,6 +1,6 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
-import { Word } from "@/types/word"; // Importing the interface we just made
+import { Word } from "@/types/word";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -8,7 +8,7 @@ export default function Home() {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. Data Fetching: This function talks to your FastAPI backend
+  // 2. Data Fetching: Request words from the FastAPI backend service
   const fetchWords = async () => {
     try {
       const response = await fetch("http://localhost:8000/words/");
