@@ -4,7 +4,7 @@ import { Word } from "@/types/word";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner
+  // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner while the words are loaded from DB
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +17,7 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching words:", error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Set to false after loading words or an error occured
     }
   };
 
