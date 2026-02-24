@@ -1,5 +1,6 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
+import WordTable from "@/components/WordTable";
 import { Word } from "@/types/word";
 import { useEffect, useState } from "react";
 
@@ -51,10 +52,7 @@ export default function Home() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              {/* This is where the Table component will go next! */}
-              <p className="text-green-600 font-medium">
-                Connected! Found {words.length} words in the database.
-              </p>
+              <WordTable words={words} />
             </div>
           )}
         </div>
