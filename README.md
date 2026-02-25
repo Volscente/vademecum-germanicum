@@ -2,9 +2,9 @@
 
 An AI-augmented, data-driven companion for mastering German. A custom-built vocabulary engine featuring automated linguistic enrichment and spaced-repetition logic.
 
-# Introduction
+## Introduction
 
-## Workspaces
+### Workspaces
 
 The project is structured in different workspaces to ensure domain separation between code components.
 
@@ -19,3 +19,14 @@ Commands:
 
 - Install dependency `uv add --package backend <dependency>`
 - Run backend `uv run --package backend uvicorn main:app --reload`
+
+## Usage
+
+### Justfile
+
+The commands for running the docker-compose stack or the tests are inside the `justfile`.
+
+It is important to use:
+
+- `run_backend` starts backend DB and FastAPI service
+- `run_frontend` starts the web app
