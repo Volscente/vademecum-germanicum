@@ -30,7 +30,7 @@ run_backend_recreate: check_root
 run_tests: check_root
     # Create docker-compose stack and destroy after finish
     # Run the uv in the "backend" workspace
-    docker-compose run --rm backend uv run --package backend pytest backend/tests
+    docker-compose run --rm --build backend uv run --package backend pytest backend/tests
 
 # Run frontend dev server
 run_frontend: check_root
