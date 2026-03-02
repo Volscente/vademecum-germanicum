@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -27,6 +27,9 @@ def read_root():
 
 @app.post("/words/", response_model=schemas.WordRead)
 def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)):
+    """
+    Create a word in the database and return it.
+    """
     # Create the SQLAlchemy model instance
     db_word = models.Word(**word.model_dump())
 
@@ -38,5 +41,51 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)):
 
 @app.get("/words/", response_model=list[schemas.WordRead])
 def read_words(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Get all matching words from the database.
+    """
     words = db.query(models.Word).offset(skip).limit(limit).all()
     return words
+
+
+@app.put("/words/{word_id}", response_model=schemas.WordRead)
+def update_word(
+    word_id: int, word_update: schemas.WordUpdate, db: Session = Depends(get_db)
+):
+    """
+    Update an existing word in the database.
+    """
+    # Retrieve word from db to be updated
+    db_word = db.query(models.Word).filter(models.Word.id == word_id).first()
+
+    if not db_word:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Word with ID {word_id} not found!"
+        )
+
+    # Instance the ORM object from the Pydantic, excluding the unset fields
+    update_data = word_update.model_dump(exclude_unset=True)
+
+    # Check for required fields
+    if "word" in update_data and (
+        update_data["word"] is None or update_data["word"].strip() == ""
+    ):
+        raise HTTPException(
+            status_code=400, detail="🚨 The 'word' field cannot be null or empty."
+        )
+
+    if "translation" in update_data and (
+        update_data["translation"] is None or update_data["translation"].strip() == ""
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="🚨 The 'translation' field cannot be null or empty.",
+        )
+
+    # Update the fields in the word retrieved from db
+    for key, value in update_data.items():
+        setattr(db_word, key, value)
+
+    db.commit()
+    db.refresh(db_word)
+    return db_word

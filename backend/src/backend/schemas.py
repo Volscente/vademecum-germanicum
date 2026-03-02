@@ -43,5 +43,14 @@ class WordRead(WordBase):
     id: int
     created_at: datetime
 
-    # Tells Pydantic to read SQLAlchemy model attributes
+    # Tells Pydantic to read SQLAlchemy model attributes -> Required when converting DB objects into Pydantic
     model_config = ConfigDict(from_attributes=True)
+
+
+class WordUpdate(WordBase):
+    """
+    Update model: data used to edit a word.
+    """
+
+    word: Optional[str] = None
+    translation: Optional[str] = None

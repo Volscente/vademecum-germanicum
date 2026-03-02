@@ -18,6 +18,12 @@ help:
         exit 1; \
     fi
 
+# Run only database
+run_database:
+    docker-compose up -d db
+stop_database:
+    docker-compose stop db
+
 # Docker-compose build -> Create the docker-compose stack
 run_backend: check_root
     docker-compose up --build
@@ -30,7 +36,7 @@ run_backend_recreate: check_root
 run_tests: check_root
     # Create docker-compose stack and destroy after finish
     # Run the uv in the "backend" workspace
-    docker-compose run --rm backend uv run --package backend pytest backend/tests
+    docker-compose run --rm --build backend uv run --package backend pytest backend/tests
 
 # Run frontend dev server
 run_frontend: check_root
