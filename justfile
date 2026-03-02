@@ -18,6 +18,12 @@ help:
         exit 1; \
     fi
 
+# Run only database
+run_database:
+    docker-compose up -d db
+stop_database:
+    docker-compose stop db
+
 # Docker-compose build -> Create the docker-compose stack
 run_backend: check_root
     docker-compose up --build
