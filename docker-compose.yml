@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
 
   backend:
     build:
@@ -18,7 +18,7 @@ services:
     container_name: vademecum_backend
     environment:
       # We construct the URL using the variables from .env
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST_DOCKER}:${POSTGRES_PORT}/${POSTGRES_DB}
     ports:
       - "8000:8000"
     depends_on:
