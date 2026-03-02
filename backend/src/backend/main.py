@@ -83,7 +83,7 @@ def update_word(
         )
 
     # Update the fields in the word retrieved from db
-    for key, value in update_data:
+    for key, value in update_data.items():
         setattr(db_word, key, value)
 
     db.commit()
