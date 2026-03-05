@@ -89,3 +89,26 @@ def update_word(
     db.commit()
     db.refresh(db_word)
     return db_word
+
+
+@app.delete("/words/{word_id}", status_code=204)
+def delete_word(word_id: int, db: Session = Depends(get_db)):
+    """
+    Remove a word from the database by its ID.
+    """
+
+    # Retrieve word from db to be deleted
+    db_word = db.query(models.Word).filter(models.Word.id == word_id).first()
+
+    # Check if word is in the db
+    if not db_word:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Word with ID {word_id} not found!"
+        )
+
+    # Delete word and commit
+    db.delete(db_word)
+    db.commit()
+
+    # Returning None with status 204 is standard for a successful DELETE
+    return None
