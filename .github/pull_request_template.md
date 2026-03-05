@@ -1,14 +1,24 @@
-# Description
+---
+name: Pull Request
+about: Describe code changes
+title: ""
+labels: ""
+assignees: ""
+---
+
+## Description
 
 The PR resolves the issue #<issue_number> by ...
 
-# Changelog
+## Changelog
 
-- [x] Files Changed
+###  Added
 
-# Checklist
+### Changed
 
-## Mandatory
+## Checklist
+
+### Mandatory
 
 - [x] The title of the Pull Request starts with the JIRA ticket number (if provided)
 - [x] The title of the Pull Request must reflect the corresponding issue title
@@ -16,7 +26,7 @@ The PR resolves the issue #<issue_number> by ...
 - [x] It has to have a `Changelog` section, reporting what has been changed in the corresponding issue
 - [x] The project version must have been updated
 
-## Optional
+### Optional
 
 - [x] Update the Wiki
 - [x] Update the `README.md`

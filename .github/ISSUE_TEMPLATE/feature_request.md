@@ -1,18 +1,25 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
-# Description
+## Description
+
 As a ...,
 I want to ...,
 In order to ...
 
-# Changelog
+## Changelog
+
+### Added
+
+### Refactor
+
+## Checklist
+
 - [ ] Update Wiki
 - [ ] Update Documentation
 - [ ] Update `CHANGELOG.md`
