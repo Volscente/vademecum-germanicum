@@ -2,9 +2,9 @@
 
 An AI-augmented, data-driven companion for mastering German. A custom-built vocabulary engine featuring automated linguistic enrichment and spaced-repetition logic.
 
-# Introduction
+## Introduction
 
-## Workspaces
+### Workspaces
 
 The project is structured in different workspaces to ensure domain separation between code components.
 
@@ -18,10 +18,13 @@ The `pyproject.toml` are organised:
 Commands:
 
 - Install dependency `uv add --package backend <dependency>`
-- Run backend `uv run --package backend uvicorn main:app --reload`
 
-# Usage
+## Usage
 
-## Justfile
+### Justfile
 
 The commands for running the docker-compose stack or the tests are inside the `justfile`.
+
+### Testing
+
+It is important to ensure the Database service is running before lunching the testing command.

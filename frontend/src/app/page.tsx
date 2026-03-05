@@ -1,0 +1,62 @@
+"use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
+
+import WordTable from "@/components/WordTable";
+import { Word } from "@/types/word";
+import { useEffect, useState } from "react";
+
+export default function Home() {
+  // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner while the words are loaded from DB
+  const [words, setWords] = useState<Word[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Data Fetching: Request words from the FastAPI backend service
+  const fetchWords = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/words/");
+      const data = await response.json();
+      setWords(data);
+    } catch (error) {
+      console.error("Error fetching words:", error);
+    } finally {
+      setLoading(false); // Set to false after loading words or an error occured
+    }
+  };
+
+  // 3. Effect Hook: This runs fetchWords() once as soon as the page loads
+  useEffect(() => {
+    fetchWords();
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">
+            Vademecum Germanicum
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Your personal German vocabulary vault.
+          </p>
+        </div>
+
+        {/* Content Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {loading ? (
+            <p className="text-center py-10 text-gray-500">
+              Loading your vocabulary...
+            </p>
+          ) : words.length === 0 ? (
+            <p className="text-center py-10 text-gray-500 italic">
+              No words found. Time to add your first one!
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <WordTable words={words} />
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

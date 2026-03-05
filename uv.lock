@@ -40,7 +40,7 @@ wheels = [
 
 [[package]]
 name = "backend"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "backend" }
 dependencies = [
     { name = "fastapi" },
@@ -435,5 +435,5 @@ wheels = [
 
 [[package]]
 name = "vademecum-germanicum"
-version = "0.1.0"
+version = "0.1.1"
 source = { virtual = "." }
