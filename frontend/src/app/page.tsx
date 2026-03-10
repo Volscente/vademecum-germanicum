@@ -1,5 +1,6 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
+import AddWordModal from "@/components/AddWordModal";
 import WordTable from "@/components/WordTable";
 import { Word } from "@/types/word";
 import { useEffect, useState } from "react";
@@ -31,13 +32,17 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">
-            Vademecum Germanicum
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Your personal German vocabulary vault.
-          </p>
+        <div className="flex justify-between items-end mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">
+              Vademecum Germanicum
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Your personal German vocabulary vault.
+            </p>
+          </div>
+          {/* Pass fetchWords so the modal can refresh the table after adding a new word */}
+          <AddWordModal onWordAdded={fetchWords} />
         </div>
 
         {/* Content Section */}
