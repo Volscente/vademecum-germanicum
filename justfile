@@ -41,3 +41,9 @@ run_tests: check_root
 # Run frontend dev server
 run_frontend: check_root
     cd frontend && npm run dev
+
+# Run backend + frontend and open browser
+dev: check_root
+    just run_backend &
+    just run_frontend &
+    open http://localhost:3000

@@ -57,7 +57,7 @@ export default function Home() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <WordTable words={words} />
+              <WordTable words={words} onRefresh={fetchWords} />
             </div>
           )}
         </div>
