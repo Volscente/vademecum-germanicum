@@ -7,12 +7,22 @@ assignees: ''
 
 ---
 
-# Description
+# <Feature Name>
+
+## Description
+
 As a ...,
 I want to ...,
 In order to ...
 
-# Changelog
+## Changelog
+
+### Added
+
+### Changed
+
+## Checklist
+
 - [ ] Update Wiki
 - [ ] Update Documentation
 - [ ] Update `CHANGELOG.md`
