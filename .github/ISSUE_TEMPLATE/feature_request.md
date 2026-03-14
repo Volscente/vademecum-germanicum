@@ -8,15 +8,17 @@ assignees: ""
 
 ## Description
 
-As a ...,
-I want to ...,
-In order to ...
+**Goal**:
+
+**Deliverables**:
+
+- [ ]
 
 ## Changelog
 
 ### Added
 
-### Refactor
+### Changed
 
 ## Checklist
 
