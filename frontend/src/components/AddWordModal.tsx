@@ -46,32 +46,38 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+        className="flex items-center gap-2 bg-forest-600 text-white px-4 py-2 rounded-lg hover:bg-forest-700 transition-colors"
       >
         <PlusCircle className="w-5 h-5" /> Add New Word
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Add German Word</h2>
+          <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-xl w-full max-w-md">
+            <h2 className="text-forest-800 dark:text-forest-100 text-xl font-bold mb-4">
+              Add German Word
+            </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium">German Word</label>
+                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  German Word
+                </label>
                 <input
                   {...register("word")}
-                  className="w-full border p-2 rounded"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
                 />
                 {errors.word && (
-                  <p className="text-red-500 text-xs">{errors.word.message}</p>
+                  <p className="text-red-600 text-xs">{errors.word.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium">Translation</label>
+                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  Translation
+                </label>
                 <input
                   {...register("translation")}
-                  className="w-full border p-2 rounded"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
                 />
                 {errors.translation && (
                   <p className="text-red-500 text-xs">
@@ -84,13 +90,13 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-500"
+                  className="text-forest-600 dark:text-forest-300 hover:text-forest-800 dark:hover:text-forest-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded"
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded transition-colors"
                 >
                   Save Word
                 </button>

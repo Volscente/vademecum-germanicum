@@ -5,12 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-03-14
+
+### Added
+
+- **Frontend**: New `EditWordModal` React Component to create a UI for editing and deleting words.
+
+### Changed
+
+- **Frontend**: Add clickable words for editing/deleting in `WordTable`.
+- **Frontend**: Add dark mode and green color palette.
+
 ## [0.2.2] - 2026-03-09
 
 ### Added
 
-- **Frontend**: New `AddWordModal.tsx` React Component to create a UI for adding words into the table.
-- **Frontend**: New `wordSchema.ts` Zod object to perform input validation on `AddWordModal.tsx` React Component.
+- **Frontend**: New `AddWordModal` React Component to create a UI for adding words into the table.
+- **Frontend**: New `wordSchema` Zod object to perform input validation on `AddWordModal` React Component.
 
 ### Changed
 
