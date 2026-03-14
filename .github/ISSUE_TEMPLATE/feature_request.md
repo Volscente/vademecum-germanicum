@@ -1,19 +1,18 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
-
-# <Feature Name>
 
 ## Description
 
-As a ...,
-I want to ...,
-In order to ...
+**Goal**:
+
+**Deliverables**:
+
+- [ ]
 
 ## Changelog
 
