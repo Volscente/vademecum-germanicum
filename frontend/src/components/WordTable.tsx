@@ -16,55 +16,57 @@ export default function WordTable({ words, onRefresh }: WordTableProps) {
 
   return (
     <>
-      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-gray-50">
+      <div className="overflow-hidden shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
+        <table className="min-w-full divide-y divide-forest-200 dark:divide-forest-700">
+          <thead className="bg-forest-50 dark:bg-forest-800">
             <tr>
-              <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
+              <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 <div className="flex items-center gap-2">
                   <Languages className="w-4 h-4" /> German
                 </div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" /> Translation
                 </div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 Category
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" /> Added
                 </div>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-forest-100 dark:divide-forest-700 bg-white dark:bg-forest-900">
             {words.map((word) => (
               <tr
                 key={word.id}
                 // 3. Make row clickable to open details/edit/delete modal
                 onClick={() => setSelectedWord(word)}
-                className="hover:bg-indigo-50 cursor-pointer transition-colors"
+                className="hover:bg-forest-50 dark:hover:bg-forest-800 cursor-pointer transition-colors"
               >
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
-                  <span className="font-bold text-indigo-600">{word.word}</span>
+                  <span className="font-bold text-forest-700 dark:text-forest-300">
+                    {word.word}
+                  </span>
                   {word.gender && word.gender !== "none" && (
-                    <span className="ml-2 text-xs font-medium text-gray-400 uppercase">
+                    <span className="ml-2 text-xs font-medium text-forest-400 dark:text-forest-500 uppercase">
                       ({word.gender})
                     </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-600 dark:text-forest-300">
                   {word.translation}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
-                  <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                  <span className="inline-flex items-center rounded-md bg-forest-50 dark:bg-forest-700 px-2 py-1 text-xs font-medium text-forest-700 dark:text-forest-200 ring-1 ring-inset ring-forest-700/10 dark:ring-forest-400/20">
                     {word.category || "N/A"}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-400 dark:text-forest-500">
                   {new Date(word.created_at).toLocaleDateString()}
                 </td>
               </tr>
