@@ -21,6 +21,31 @@ def test_get_words_list(client):
     assert isinstance(response.json(), list)
 
 
+def test_search_words_success(client, valid_word_payload):
+    """
+    Ensure the search filter correctly works based on Words and Translation.
+    """
+    # Create word
+    client.post("/words/", json=valid_word_payload)
+
+    # Search by Word
+    response = client.get("/words/?search=Zuschlag")
+    assert response.status_code == 200
+    assert len(response.json()) >= 1
+    assert response.json()[0]["word"] == "Zuschlag"
+
+    # Search by Translation
+    response = client.get("/words/?search=Surcharge")
+    assert response.status_code == 200
+    assert len(response.json()) >= 1
+    assert response.json()[0]["translation"] == "Surcharge"
+
+    # Word not found
+    response = client.get("/words/?search=NonEsistentWord")
+    assert response.status_code == 200
+    assert len(response.json()) == 0
+
+
 def test_update_word_success(client, valid_word_payload):
     """
     Ensure the word is correctly updated.

@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -40,11 +41,28 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/words/", response_model=list[schemas.WordRead])
-def read_words(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_words(
+    skip: int = 0,
+    limit: int = 100,
+    search: str | None = None,  # 2. Add optional search parameter
+    db: Session = Depends(get_db),
+):
     """
-    Get all matching words from the database.
+    Get matching words from the database with optional search filtering.
     """
-    words = db.query(models.Word).offset(skip).limit(limit).all()
+    query = db.query(models.Word)
+
+    # Apply case-insensitive filter if search string is provided
+    if search:
+        search_filter = f"%{search}%"
+        query = query.filter(
+            or_(
+                models.Word.word.ilike(search_filter),
+                models.Word.translation.ilike(search_filter),
+            )
+        )
+
+    words = query.offset(skip).limit(limit).all()
     return words
 
 
