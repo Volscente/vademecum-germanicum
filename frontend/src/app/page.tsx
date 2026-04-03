@@ -1,33 +1,42 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
 import AddWordModal from "@/components/AddWordModal";
+import SearchBar from "@/components/SearchBar";
 import ThemeToggle from "@/components/ThemeToggle";
 import WordTable from "@/components/WordTable";
 import { Word } from "@/types/word";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
-  // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner while the words are loaded from DB
+  // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner while the words are loaded from DB, 'searchTerm' used for searching words
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // 2. Data Fetching: Request words from the FastAPI backend service
-  const fetchWords = async () => {
+  // 2. Data Fetching: Request words from the FastAPI backend service, including search
+  const fetchWords = useCallback(async (searchQuery: string = "") => {
     try {
-      const response = await fetch("http://localhost:8000/words/");
+      setLoading(true);
+      // Construct URL with query parameters
+      const baseUrl = "http://localhost:8000/words/";
+      const url = searchQuery
+        ? `${baseUrl}?search=${encodeURIComponent(searchQuery)}`
+        : `${baseUrl}?limit=10`;
+
+      const response = await fetch(url);
       const data = await response.json();
       setWords(data);
     } catch (error) {
       console.error("Error fetching words:", error);
     } finally {
-      setLoading(false); // Set to false after loading words or an error occured
+      setLoading(false);
     }
-  };
-
-  // 3. Effect Hook: This runs fetchWords() once as soon as the page loads
-  useEffect(() => {
-    fetchWords();
   }, []);
+
+  // 3. Effect Hook: Trigger fetch whenever searchTerm changes (already debounced by component)
+  useEffect(() => {
+    fetchWords(searchTerm);
+  }, [searchTerm, fetchWords]);
 
   return (
     <main className="min-h-screen bg-forest-50 dark:bg-forest-900 p-8">
@@ -45,8 +54,16 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             {/* Pass fetchWords so the modal can refresh the table after adding a new word */}
-            <AddWordModal onWordAdded={fetchWords} />
+            <AddWordModal onWordAdded={() => fetchWords(searchTerm)} />
           </div>
+        </div>
+
+        {/* Integrated Search Bar */}
+        <div className="mb-6">
+          <SearchBar
+            onSearch={setSearchTerm}
+            placeholder="Search by word or translation..."
+          />
         </div>
 
         {/* Content Section */}
