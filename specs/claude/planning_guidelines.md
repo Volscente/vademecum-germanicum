@@ -398,3 +398,33 @@ class TokenResponse(BaseModel):
 - [ ] Should token expiry (24 h) be configurable via env var? — @simone, target 2026-04-18
 - [ ] Do we blacklist tokens on logout? If yes, this expands scope to Sprint 3. — @simone, target 2026-04-18
 ````
+
+## GitHub Naming Convention
+
+### Overview
+
+This table illustrates how a single feature flows from an issue tracker into the codebase.
+
+| Element                | Example                                        |
+| :--------------------- | :--------------------------------------------- |
+| **GitHub Issue (#42)** | `Implement Word enrichment module`             |
+| **GitHub Branch**      | `feat/42-word-enrichment`                      |
+| **Pull Request Title** | `feat: implement word enrichment module (#42)` |
+
+###  The Automation "Pro-Tip"
+
+To maintain a true 1:1 relationship and reduce manual administrative work, use GitHub's **linked keywords** in your Pull Request description.
+
+### How to use it
+
+When you open a Pull Request, include one of the following keywords followed by the issue number in the description field:
+
+- `Closes #42`
+- `Fixes #42`
+- `Resolves #42`
+
+### Why it matters
+
+1. **Auto-Closing**: As soon as the Pull Request is merged into your default branch (e.g., `main` or `master`), GitHub will **automatically close** Issue #42.
+2. **Traceability**: It creates a permanent link on the Issue page pointing to the PR that solved it, and vice versa.
+3. **Clean Board**: It ensures your "In Progress" or "To Do" columns stay up to date without manual dragging.
