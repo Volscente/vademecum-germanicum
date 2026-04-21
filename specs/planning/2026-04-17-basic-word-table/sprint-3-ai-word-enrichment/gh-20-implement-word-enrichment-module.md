@@ -9,10 +9,10 @@
 
 **In scope:**
 - New `enrichment` package at `backend/src/enrichment/` (sibling to `backend/src/backend/`, not inside it)
-- Pydantic input/output schemas for the LLM boundary
+- A `GermanWordInput` Pydantic schema for input validation at the service boundary
 - A single public function `get_word_enrichment(word: str) -> WordBase`
-- Google Gemini Flash as the LLM backend (`google-genai` package)
-- Unit tests with mocked LLM client
+- Google Gemini Flash as the LLM backend via PydanticAI
+- Unit tests using PydanticAI's built-in `TestModel`
 
 **Out of scope:**
 - API endpoint to trigger enrichment (future sprint)
@@ -29,30 +29,27 @@
 Caller (script or future endpoint)
   │  get_word_enrichment("Hund")
   ▼
-enrichment.service            ← public API; orchestrates the flow
+enrichment.service            ← public API; validates input, runs Agent
   │  1. validates GermanWordInput
-  │  2. builds prompt
+  │  2. agent.run_sync(user_prompt)
   ▼
-enrichment.client             ← thin Gemini Flash wrapper
-  │  POST to Gemini API; returns raw JSON string
-  ▼
-enrichment.schemas            ← parse raw JSON into EnrichmentResponse (Pydantic)
-  │  map fields onto WordBase
+PydanticAI Agent (GeminiModel) ← handles Gemini call + structured output parsing
+  │  result_type=WordBase; no manual JSON parsing needed
   ▼
 WordBase                      ← existing schema: backend/src/backend/schemas.py
   │  returned to caller
   ▼
 ```
 
-The `enrichment` package imports `WordBase` from `backend.schemas` but is otherwise self-contained. It does not import from `backend.main`, `backend.models`, or `backend.database`.
+PydanticAI replaces the manual client + JSON-parse layer entirely. The `enrichment` package imports `WordBase` from `backend.schemas` but is otherwise self-contained. It does not import from `backend.main`, `backend.models`, or `backend.database`.
 
 ---
 
 ## Tech Stack
 
-| Package      | Version  | Justification                                                        |
-|--------------|----------|----------------------------------------------------------------------|
-| `google-genai` | `>=1.0` | Official Google Gemini SDK; free tier; supports structured JSON output |
+| Package             | Version  | Justification                                                                      |
+|---------------------|----------|------------------------------------------------------------------------------------|
+| `pydantic-ai[gemini]` | `>=0.1` | Structured LLM outputs directly into Pydantic models; native Gemini support; `TestModel` for unit tests without hitting the API |
 
 ---
 
@@ -63,18 +60,31 @@ The `enrichment` package imports `WordBase` from `backend.schemas` but is otherw
 | File                                          | Action | Description                                               |
 |-----------------------------------------------|--------|-----------------------------------------------------------|
 | `backend/src/enrichment/__init__.py`          | Create | Re-exports `get_word_enrichment` as the package's public API |
-| `backend/src/enrichment/schemas.py`           | Create | `GermanWordInput` and `EnrichmentResponse` Pydantic types |
-| `backend/src/enrichment/prompts.py`           | Create | Prompt template that instructs Gemini to return JSON matching `WordBase` |
-| `backend/src/enrichment/client.py`            | Create | Gemini Flash client; reads `GEMINI_API_KEY` from env      |
-| `backend/src/enrichment/service.py`           | Create | `get_word_enrichment()` — validation, prompt, parse, return |
-| `backend/src/backend/schemas.py`              | Read   | Existing `WordBase`; reused unchanged as the return type  |
-| `backend/pyproject.toml`                      | Modify | Add `google-genai` dependency                             |
-| `backend/tests/enrichment/test_enrichment.py` | Create | Unit tests with mocked Gemini client                      |
+| `backend/src/enrichment/schemas.py`           | Create | `GermanWordInput` for input validation at the service boundary |
+| `backend/src/enrichment/prompts.py`           | Create | System prompt constant instructing Gemini to populate `WordBase` fields |
+| `backend/src/enrichment/service.py`           | Create | PydanticAI Agent definition + `get_word_enrichment()` |
+| `backend/src/backend/schemas.py`              | Read   | Existing `WordBase`; used as the Agent's `result_type` and the function's return type |
+| `backend/pyproject.toml`                      | Modify | Add `pydantic-ai[gemini]` dependency                      |
+| `backend/tests/enrichment/test_enrichment.py` | Create | Unit tests using PydanticAI's `TestModel`                 |
+
+No `client.py` is needed — PydanticAI's Agent handles the LLM call and structured output parsing.
 
 ### Key Functions
 
 ```python
 # enrichment/service.py
+
+from pydantic_ai import Agent
+from pydantic_ai.models.gemini import GeminiModel
+from backend.schemas import WordBase
+from .schemas import GermanWordInput
+from .prompts import SYSTEM_PROMPT
+
+_agent = Agent(
+    GeminiModel("gemini-1.5-flash"),
+    result_type=WordBase,
+    system_prompt=SYSTEM_PROMPT,
+)
 
 def get_word_enrichment(word: str) -> WordBase:
     """
@@ -89,26 +99,15 @@ def get_word_enrichment(word: str) -> WordBase:
 
     Raises:
         ValidationError: If `word` is empty.
-        EnrichmentError: If the Gemini call fails or returns unparseable JSON.
+        EnrichmentError: If the Gemini call fails or returns output that cannot
+                         be parsed into WordBase.
     """
-```
-
-```python
-# enrichment/client.py
-
-def call_gemini(prompt: str) -> str:
-    """
-    Send a prompt to Gemini Flash and return the raw text response.
-
-    Args:
-        prompt: Fully-formed prompt string.
-
-    Returns:
-        Raw text response from the model (expected to be a JSON string).
-
-    Raises:
-        EnrichmentError: On API errors or empty responses.
-    """
+    GermanWordInput(word=word)  # raises ValidationError if empty
+    try:
+        result = _agent.run_sync(f"Enrich the German word: {word}")
+        return result.data
+    except Exception as exc:
+        raise EnrichmentError(f"Enrichment failed for '{word}'") from exc
 ```
 
 ### Data Models / Schemas
@@ -118,53 +117,38 @@ def call_gemini(prompt: str) -> str:
 
 class GermanWordInput(BaseModel):
     word: str = Field(..., min_length=1, description="A German word to enrich")
-
-class EnrichmentResponse(BaseModel):
-    """Mirrors WordBase fields; parsed directly from Gemini's JSON output."""
-    word: str
-    translation: str
-    gender: Optional[str] = "none"           # der | die | das | none
-    category: Optional[str] = "noun"         # noun | verb | adjective | adverb | pronoun
-    word_nominative: Optional[str] = None
-    word_genitive: Optional[str] = None
-    word_plural: Optional[str] = None
-    prepositions: Optional[str] = None       # comma-separated
-    example_sentences: Optional[str] = None  # comma-separated
-    idiomatic_usages: Optional[str] = None   # comma-separated
 ```
 
-`EnrichmentResponse` is then mapped field-by-field to `WordBase` (same fields, same types — direct `**response.model_dump()` works).
+`WordBase` (from `backend.schemas`) is used directly as the Agent's `result_type`. PydanticAI guides the LLM to produce output that matches `WordBase`'s field types and constraints — including `GenderEnum` and `CategoryEnum` — without manual mapping.
+
+`EnrichmentResponse` is not needed; the structured output layer is handled by PydanticAI.
 
 ### Prompt Design
 
-The prompt in `prompts.py` must:
-1. Instruct the model to respond **only** with a JSON object (no prose)
+The system prompt in `prompts.py` must:
+1. Instruct the model to act as a German linguistics expert
 2. Define each field with its German grammar meaning and allowed values
-3. Use the `word` input in the prompt body
+3. Rely on PydanticAI's structured output enforcement (no need to say "respond only with JSON")
 
 ```python
 # enrichment/prompts.py
 
-ENRICHMENT_PROMPT_TEMPLATE = """
-You are a German linguistics expert. Given a German word, return a JSON object
-with the following fields (use null for unknown fields):
+SYSTEM_PROMPT = """
+You are a German linguistics expert. When given a German word, populate the
+requested fields with accurate grammatical and usage data:
 
-{{
-  "word": "{word}",
-  "translation": "<English translation>",
-  "gender": "<der | die | das | none>",
-  "category": "<noun | verb | adjective | adverb | pronoun>",
-  "word_nominative": "<nominative singular form or null>",
-  "word_genitive": "<genitive singular form or null>",
-  "word_plural": "<plural form or null>",
-  "prepositions": "<comma-separated prepositions commonly used with this word, or null>",
-  "example_sentences": "<two comma-separated German example sentences, or null>",
-  "idiomatic_usages": "<comma-separated idiomatic expressions, or null>"
-}}
+- word: the word as given
+- translation: English translation
+- gender: one of der | die | das | none (use none for non-nouns)
+- category: one of noun | verb | adjective | adverb | pronoun
+- word_nominative: nominative singular form, or null
+- word_genitive: genitive singular form, or null
+- word_plural: plural form, or null
+- prepositions: comma-separated prepositions commonly used with this word, or null
+- example_sentences: two comma-separated German example sentences, or null
+- idiomatic_usages: comma-separated idiomatic expressions, or null
 
-Respond with only the JSON object. No explanations.
-
-Word: {word}
+Use null for unknown or inapplicable fields.
 """
 ```
 
@@ -172,17 +156,37 @@ Word: {word}
 
 ## Testing Strategy
 
-- **Unit tests** (mock `enrichment.client.call_gemini`):
-  - Valid noun (`"Hund"`) → returns `WordBase` with `gender="der"`, `category="noun"`
-  - Valid verb (`"laufen"`) → returns `WordBase` with `gender="none"`, `category="verb"`
-  - Empty string → raises `ValidationError` before any LLM call
-  - LLM returns malformed JSON → raises `EnrichmentError`
-  - LLM returns JSON missing required fields (`word`, `translation`) → raises `ValidationError`
+- **Unit tests** (PydanticAI `TestModel` — no live API calls):
+  - Valid noun (`"Hund"`) → returns a `WordBase` instance
+  - Valid verb (`"laufen"`) → returns a `WordBase` instance
+  - Empty string → raises `ValidationError` before Agent is invoked
+  - Agent raises an exception → `get_word_enrichment` raises `EnrichmentError`
 
 - **Integration test** (optional, gated by `GEMINI_API_KEY` env var):
   - Live call with `"Hund"` → response parses cleanly into `WordBase`
 
 - **No mocking of Pydantic or `WordBase`** — test the full parse chain end-to-end.
+
+```python
+# backend/tests/enrichment/test_enrichment.py (sketch)
+
+from pydantic_ai.models.test import TestModel
+from enrichment.service import _agent, get_word_enrichment
+
+def test_valid_word_returns_wordbase():
+    with _agent.override(model=TestModel()):
+        result = get_word_enrichment("Hund")
+        assert isinstance(result, WordBase)
+
+def test_empty_word_raises_validation_error():
+    with pytest.raises(ValidationError):
+        get_word_enrichment("")
+
+def test_agent_failure_raises_enrichment_error():
+    with _agent.override(model=TestModel(call_tools=[])):  # simulate failure
+        with pytest.raises(EnrichmentError):
+            get_word_enrichment("Hund")
+```
 
 ---
 
@@ -191,3 +195,4 @@ Word: {word}
 - [ ] `GEMINI_API_KEY` must be added to `.env` and to Docker Compose env config — confirm where to document this. — @Volscente
 - [ ] Gemini free tier rate limits: 15 RPM / 1M TPD on Flash. Acceptable for manual enrichment; not for bulk. — note in README if bulk use is planned.
 - [ ] Comma-separated storage for `prepositions`, `example_sentences`, `idiomatic_usages` is the existing convention. If this becomes JSON later, that is a separate schema migration task.
+- [ ] PydanticAI's structured output relies on the model supporting function calling / JSON mode. Gemini Flash supports this; verify the specific model version used (`gemini-1.5-flash` vs `gemini-2.0-flash`) at implementation time.
