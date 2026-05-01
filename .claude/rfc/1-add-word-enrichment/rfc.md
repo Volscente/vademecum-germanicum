@@ -73,7 +73,7 @@ The word creation flow in Vademecum Germanicum currently requires users to manua
 
 The enrichment flow is triggered by a user clicking an "Enrich" button inside the word creation modal. The frontend sends the entered word string to a new `POST /words/enrich` endpoint on the FastAPI backend. The backend delegates the request to a PydanticAI agent, which calls an LLM via LiteLLM and coerces the output into a typed structure matching the `WordCreate` schema. The structured response is returned to the frontend, which uses it to pre-fill the remaining form fields. The user can review and adjust values before submitting the form normally.
 
-The backend enrichment logic is isolated in its own module to keep it decoupled from the existing CRUD routes. LiteLLM acts as the provider abstraction so that model selection (e.g., GPT-4o, Claude 3 Haiku) is controlled via environment configuration rather than hardcoded in application logic.
+The backend enrichment logic is isolated in its own module to keep it decoupled from the existing CRUD routes. LiteLLM acts as the provider abstraction so that model selection is controlled via environment configuration rather than hardcoded in application logic. The default target is the **Gemini Flash free tier** (via Google AI Studio), keeping the feature cost-free for personal use.
 
 ## Frontend Integration {#frontend-integration}
 
@@ -87,7 +87,7 @@ A new route `POST /words/enrich` is added to `main.py`. It accepts `{ word: str 
 
 - **Python**: Backend language; used to implement the enrichment endpoint and PydanticAI agent.
 - **PydanticAI**: LLM agent framework; enforces structured, typed output from the LLM that maps directly to existing Pydantic schemas.
-- **LiteLLM**: Model provider abstraction; allows switching the underlying LLM (e.g., OpenAI, Anthropic) via environment config without code changes.
+- **LiteLLM**: Model provider abstraction; routes calls to the **Gemini Flash free tier** (Google AI Studio) by default, with the ability to swap providers via environment config without code changes.
 
 ## Effort Estimations {#effort-estimations}
 
@@ -110,6 +110,10 @@ Total estimated effort: **{N} sessions**.
 **Q: Why use PydanticAI instead of calling the LLM API directly?**
 
 A: PydanticAI enforces a typed response schema at the agent level, eliminating ad-hoc JSON parsing and validation logic. Since the enriched data must conform to the existing `WordCreate` schema, having the agent validate output natively is simpler and more robust than post-processing raw LLM text.
+
+**Q: Why Gemini Flash and not a paid model like GPT-4o?**
+
+A: This is a personal project with no budget for inference costs. Gemini Flash is available on Google AI Studio's free tier with generous rate limits, and its instruction-following quality is sufficient for structured field extraction on short German words. LiteLLM makes it straightforward to upgrade to a paid model later if quality proves inadequate.
 
 **Q: Why is enrichment of existing (already-saved) words out of scope?**
 
@@ -137,6 +141,7 @@ A: Terms used in this RFC:
 | LLM returns plausible but incorrect German grammar data               | Medium     | Treat enriched values as suggestions; user must confirm before saving. Add a disclaimer in the UI.        |
 | LLM API latency degrades form UX                                      | Medium     | Show a loading state on the Enrich button; set a reasonable timeout and surface a clear error on failure. |
 | LiteLLM version incompatibility with PydanticAI                       | Low        | Pin both versions in `pyproject.toml`; verify compatibility in CI before merging.                         |
+| Gemini Flash free-tier rate limits block enrichment during heavy use  | Low        | Personal usage is low-volume; add retry logic with exponential backoff. Document the limit in the README. |
 | Scope of `WordEnrichment` schema diverges from `WordCreate` over time | Low        | Keep `WordEnrichment` as a strict subset of `WordCreate`; update it whenever `WordCreate` changes.        |
 
 ## References {#references}
