@@ -18,7 +18,7 @@ TASK-1 ──► TASK-2 ──► TASK-3
 
 ## TASK-1 — Backend LLM Dependencies and Configuration
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Backend Enrichment API](https://github.com/Volscente/vademecum-germanicum/issues/23)
 **Effort estimate:** 0.5 FTE-days
 
 ### Scope
@@ -42,7 +42,7 @@ PydanticAI and LiteLLM are added to the backend package via `uv add --package ba
 
 ## TASK-2 — Enrichment Module and Endpoint with Tests
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Backend Enrichment API](https://github.com/Volscente/vademecum-germanicum/issues/23)
 **Effort estimate:** 1.5 FTE-days
 
 ### Scope
@@ -72,7 +72,7 @@ Deliver a working, tested API endpoint that accepts `{ "word": "<string>" }` and
 
 ## TASK-3 — Frontend Enrich Button Integration
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Frontend Enrichment UI](https://github.com/Volscente/vademecum-germanicum/issues/24)
 **Effort estimate:** 1 FTE-day
 
 ### Scope
