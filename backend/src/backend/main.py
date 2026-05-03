@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .database import engine, get_db
+from .enrichment import WordEnrichment, enrich_word
 
 # Create the database tables on startup (no replace if they exist)
 models.Base.metadata.create_all(bind=engine)
@@ -24,6 +25,27 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Willkommen! The API is alive and connected to DB."}
+
+
+@app.post("/words/enrich", response_model=WordEnrichment)
+async def enrich_word_endpoint(
+    request: schemas.WordEnrichRequest,
+) -> WordEnrichment:
+    """Enrich a German word via LLM and return structured metadata.
+
+    Accepts a word string, delegates to the enrichment module,
+    and returns validated field values for frontend form pre-fill.
+
+    Args:
+        request: Request body containing the word to enrich.
+
+    Returns:
+        WordEnrichment with populated metadata fields.
+
+    Raises:
+        HTTPException (422): If enrichment fails due to LLM or validation errors.
+    """
+    return await enrich_word(request.word)
 
 
 @app.post("/words/", response_model=schemas.WordRead)
