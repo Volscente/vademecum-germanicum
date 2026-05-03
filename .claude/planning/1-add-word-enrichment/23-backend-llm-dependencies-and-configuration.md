@@ -159,5 +159,5 @@ Verify: both imports succeed without errors. No automated tests for this task �
 
 ### Open Questions / Risks
 
-- [ ] **PydanticAI + LiteLLM version compatibility:** Pin both versions after confirming they work together. **Target:** resolve during TASK-1 implementation
-- [ ] **Gemini API key provisioning:** Simone needs a Google AI Studio API key added to `.env` before testing. **Target:** before TASK-2
+- [x] **PydanticAI + LiteLLM version compatibility:** Resolved — `uv add` will pin exact versions in `uv.lock` at install time. Compatibility verified during implementation.
+- [x] **Gemini API key provisioning:** Resolved — `GEMINI_API_KEY` is already configured in `.env`. LiteLLM reads it automatically for `gemini/*` models.
