@@ -3,7 +3,7 @@ title: "Add Word Enrichment"
 project: "Vademecum Germanicum"
 author: "Simone Porreca"
 deadline: "2026-05-03"
-notion-page: "https://www.notion.so/ec2d1072f12045b4b6d46dceb5f1b7cd?v=33ad0937458546728e0a7c8743ea4010&p=3535cc6c0f0780d2a72cc71a319b382e&pm=s"
+notion-page: "https://www.notion.so/1-Add-Word-Enrichment-3545cc6c0f0780c3a0d4e11f3aa47880"
 github-repo: "https://github.com/Volscente/vademecum-germanicum"
 milestone: "add-word-enrichment"
 tech-stack:

@@ -1,13 +1,13 @@
 # [RFC] Add Word Enrichment — Vademecum Germanicum
 
-| Author              | Simone Porreca                                                                                                                                           |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Project**         | Vademecum Germanicum                                                                                                                                     |
-| **RFC status**      | Draft                                                                                                                                                    |
-| **Review deadline** | 2026-05-03                                                                                                                                               |
-| **Notion page**     | [Add Word Enrichment](https://www.notion.so/ec2d1072f12045b4b6d46dceb5f1b7cd?v=33ad0937458546728e0a7c8743ea4010&p=2fe5cc6c0f078014a362e578a13f6a46&pm=s) |
-| **GitHub repo**     | [Volscente/vademecum-germanicum](https://github.com/Volscente/vademecum-germanicum)                                                                      |
-| **Milestone**       | [Milestone: add-word-enrichment](https://github.com/Volscente/vademecum-germanicum/milestone/{N})                                                        |
+| Author              | Simone Porreca                                                                                      |
+| :------------------ | :-------------------------------------------------------------------------------------------------- |
+| **Project**         | Vademecum Germanicum                                                                                |
+| **RFC status**      | Draft                                                                                               |
+| **Review deadline** | 2026-05-03                                                                                          |
+| **Notion page**     | [Add Word Enrichment](https://www.notion.so/1-Add-Word-Enrichment-3545cc6c0f0780c3a0d4e11f3aa47880) |
+| **GitHub repo**     | [Volscente/vademecum-germanicum](https://github.com/Volscente/vademecum-germanicum)                 |
+| **Milestone**       | [Milestone: add-word-enrichment](https://github.com/Volscente/vademecum-germanicum/milestone/{N})   |
 
 ### Timeline
 
@@ -39,7 +39,7 @@
 
 ## Motivation {#motivation}
 
-The word creation flow in Vademecum Germanicum currently requires users to manually fill in every field for each new German word — gender, category, translations, and any additional metadata. This is repetitive and error-prone, particularly for learners who may be uncertain about the correct values. A one-click enrichment action triggered from the word creation form would delegate this lookup to an LLM, automatically populating all fields from a single input, reducing friction and improving data quality. For full context, see the [Notion initiative page](https://www.notion.so/ec2d1072f12045b4b6d46dceb5f1b7cd?v=33ad0937458546728e0a7c8743ea4010&p=3535cc6c0f0780d2a72cc71a319b382e&pm=s).
+The word creation flow in Vademecum Germanicum currently requires users to manually fill in every field for each new German word — gender, category, translations, and any additional metadata. This is repetitive and error-prone, particularly for learners who may be uncertain about the correct values. A one-click enrichment action triggered from the word creation form would delegate this lookup to an LLM, automatically populating all fields from a single input, reducing friction and improving data quality. For full context, see the [Notion initiative page](https://www.notion.so/1-Add-Word-Enrichment-3545cc6c0f0780c3a0d4e11f3aa47880).
 
 ## Objectives {#objectives}
 
@@ -148,5 +148,5 @@ A: Terms used in this RFC:
 
 - [PydanticAI documentation](https://ai.pydantic.dev/)
 - [LiteLLM documentation](https://docs.litellm.ai/)
-- [Notion initiative page](https://www.notion.so/ec2d1072f12045b4b6d46dceb5f1b7cd?v=33ad0937458546728e0a7c8743ea4010&p=2fe5cc6c0f078014a362e578a13f6a46&pm=s)
+- [Notion initiative page](https://www.notion.so/1-Add-Word-Enrichment-3545cc6c0f0780c3a0d4e11f3aa47880)
 - [GitHub repo](https://github.com/Volscente/vademecum-germanicum)
