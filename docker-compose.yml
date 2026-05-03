@@ -19,6 +19,8 @@ services:
     environment:
       # We construct the URL using the variables from .env
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST_DOCKER}:${POSTGRES_PORT}/${POSTGRES_DB}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-gemini/gemini-2.0-flash}
     ports:
       - "8000:8000"
     depends_on:

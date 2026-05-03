@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-05-03
+
+### Added
+
+- **Backend**: New `POST /words/enrich` endpoint to enrich a German word with LLM-generated metadata (gender, translation, category, etc.).
+- **Backend**: New `enrichment.py` module with `WordEnrichment` model and PydanticAI agent using native Google Gemini provider.
+- **Backend**: `WordEnrichRequest` Pydantic schema for enrichment request validation.
+- **Tests**: Enrichment test suite covering success, missing field, empty string, and agent error scenarios.
+
 ## [0.2.5] - 2026-04-03
 
 ### Added
