@@ -10,15 +10,17 @@
 
 **In scope:**
 
-- `frontend/src/components/AddWordModal.tsx` — add "Enrich" button, `isEnriching`/`enrichError` state, `setValue` calls for each enriched field
+- `frontend/src/components/AddWordModal.tsx` — add "Enrich" button, `isEnriching`/`enrichError` state, `setValue` calls, and UI inputs for `gender`, `category`, `word_plural`, `example_sentences`
 - `frontend/src/lib/api.ts` — new file with `enrichWord(word: string)` fetch wrapper
 - `frontend/src/types/word.ts` — add `WordEnrichment` interface matching the backend response shape
+- `frontend/src/lib/wordSchema.ts` — align `category` enum values with backend `CategoryEnum` (see Data Models section)
+- `backend/tests/test_enrichment.py` — add unit test verifying enum serialisation matches frontend expectations
 
 **Out of scope:**
 
 - Enrichment in `EditWordModal.tsx` — separate flow, out of scope per RFC
 - Installing a toast library — inline error message below the button is sufficient
-- Frontend unit/integration tests — no existing frontend test setup in this project
+- Adding UI inputs for `word_nominative`, `word_genitive`, `prepositions`, `idiomatic_usages` — these fields exist in `WordEnrichment` but are not in the current `wordSchema`; deferred to a follow-up
 
 ---
 
@@ -72,7 +74,9 @@ No new packages required. `setValue` and `getValues` are already part of React H
 | ---- | ------ | ----------- |
 | `frontend/src/lib/api.ts` | Create | `enrichWord` fetch wrapper for `POST /words/enrich` |
 | `frontend/src/types/word.ts` | Modify | Add `WordEnrichment` interface for the enrichment response |
-| `frontend/src/components/AddWordModal.tsx` | Modify | Add "Enrich" button, loading/error state, `setValue` integration |
+| `frontend/src/lib/wordSchema.ts` | Modify | Align `category` enum with backend (replace `"preposition"` / `"other"` → `"pronoun"`) |
+| `frontend/src/components/AddWordModal.tsx` | Modify | Add gender/category selects, word_plural/example_sentences inputs, "Enrich" button, loading/error state, `setValue` integration |
+| `backend/tests/test_enrichment.py` | Modify | Add unit test verifying enum values in the response serialise as lowercase strings |
 
 ---
 
@@ -126,12 +130,31 @@ async function onEnrich(): Promise<void>
 
 export interface WordEnrichment {
   gender: "der" | "die" | "das" | "none";
-  category: "noun" | "verb" | "adjective" | "adverb" | "preposition" | "other";
+  word_nominative: string | null;
+  word_genitive: string | null;
+  word_plural: string | null;
   translation: string;
-  word_plural?: string;
-  example_sentences?: string;
+  category: "noun" | "verb" | "adjective" | "adverb" | "pronoun";
+  prepositions: string | null;
+  example_sentences: string | null;
+  idiomatic_usages: string | null;
 }
 ```
+
+`wordSchema.ts` category enum must be updated to match `CategoryEnum` in the backend. The current frontend enum (`"preposition"`, `"other"`) differs from the backend (`"pronoun"`). **Align to the backend's values:**
+
+```typescript
+// frontend/src/lib/wordSchema.ts — updated category enum
+category: z.enum([
+  "noun",
+  "verb",
+  "adjective",
+  "adverb",
+  "pronoun",       // replaces "preposition" and "other"
+]),
+```
+
+> **Note:** Removing `"preposition"` and `"other"` is a breaking change for any words already saved with those categories. Check the database before deploying.
 
 New state inside `AddWordModal`:
 
@@ -160,12 +183,55 @@ const wordValue = watch("word"); // drives button disabled state
 
 ### Testing Strategy
 
+**Unit test — enum serialisation (`backend/tests/test_enrichment.py`):**
+
+Add a test that mocks `enrich_word` to return a `WordEnrichment` with known enum values, calls `POST /words/enrich` via `TestClient`, and asserts the response JSON contains lowercase string values (not Python enum names):
+
+```python
+def test_enrich_endpoint_serialises_enums_as_strings(client, monkeypatch):
+    """Verify that gender and category are serialised as lowercase strings.
+
+    The frontend Zod schema expects plain strings ("der", "noun"), not
+    the Python enum repr. A mismatch causes setValue to silently fail.
+    """
+    mock_result = WordEnrichment(
+        gender=GenderEnum.der,
+        category=CategoryEnum.noun,
+        translation="house",
+        word_nominative="Haus",
+        word_genitive="des Hauses",
+        word_plural="Häuser",
+        prepositions=None,
+        example_sentences=None,
+        idiomatic_usages=None,
+    )
+
+    async def mock_enrich(word: str) -> WordEnrichment:
+        return mock_result
+
+    monkeypatch.setattr("backend.main.enrich_word", mock_enrich)
+
+    response = client.post("/words/enrich", json={"word": "Haus"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["gender"] == "der"      # string, not "GenderEnum.der"
+    assert body["category"] == "noun"   # string, not "CategoryEnum.noun"
+    assert body["translation"] == "house"
+```
+
+Run with:
+
+```bash
+docker-compose run --rm --build backend uv run --package backend pytest backend/tests/test_enrichment.py::test_enrich_endpoint_serialises_enums_as_strings
+```
+
 **Integration test (manual):**
 
 1. Start the full stack (`just dev`).
 2. Open the Add Word modal, type `Haus`, click "Enrich".
-3. Verify: translation, gender, and category fields are pre-filled with plausible values.
-4. Verify: the Enrich button shows a loading indicator (disabled, text changes) during the request.
+3. Verify: translation, gender, category, and word_plural fields are pre-filled.
+4. Verify: the Enrich button shows a loading indicator during the request.
 5. Verify: form fields remain editable after enrichment completes.
 6. Submit normally and confirm the word is saved with the enriched values.
 
@@ -173,11 +239,12 @@ const wordValue = watch("word"); // drives button disabled state
 
 - Empty word input → "Enrich" button is `disabled` (guarded by `!wordValue`)
 - Backend returns 422 → `enrichError` is set and shown inline beneath the button; form state is unchanged
-- Partial response (optional fields absent) → only present fields are passed to `setValue`; absent optional fields are left as-is
+- Optional fields `null` in response → those `setValue` calls are skipped; fields retain their default values
 
 ---
 
 ### Open Questions / Risks
 
-- [ ] **Form fields for enriched values are not currently rendered**: `AddWordModal` only shows `word` and `translation` inputs; `gender`, `category`, `word_plural`, and `example_sentences` are set via `defaultValues` but have no corresponding UI inputs. Decide before implementing: (a) add UI inputs for the missing fields in this task, or (b) set values silently and defer rendering to a follow-up. **Target:** resolve before starting implementation.
-- [ ] **Enum casing alignment**: Confirm that gender/category strings returned by the backend (`"der"`, `"noun"`, etc.) match the exact Zod enum values in `wordSchema.ts` — a casing mismatch causes `setValue` to silently set an invalid value that Zod will reject on submit. **Target:** verify during the first integration test run.
+- [x] **Form fields for enriched values are not currently rendered**: Resolved — option (a) chosen. Add UI inputs for `gender` (select), `category` (select), `word_plural` (text), and `example_sentences` (textarea) to `AddWordModal` as part of this task. Fields `word_nominative`, `word_genitive`, `prepositions`, `idiomatic_usages` are deferred.
+- [x] **Enum casing alignment**: Resolved — discrepancy confirmed. The backend `CategoryEnum` contains `"pronoun"`; the frontend Zod schema has `"preposition"` and `"other"` instead. **Action before implementing:** update `wordSchema.ts` to replace `"preposition"` / `"other"` with `"pronoun"`, and check whether any saved words use those values (run `SELECT DISTINCT category FROM words;` against the database).
+- [x] **Breaking change from enum alignment**: Resolved — `just empty_words` command added to the justfile. Run it before deploying the enum change to truncate the words table (resets IDs too). Requires the `db` container to be running (`just run_database` first).

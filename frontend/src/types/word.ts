@@ -10,3 +10,19 @@ export interface Word {
   category?: string;
   created_at: string;
 }
+
+/**
+ * This interface matches the 'WordEnrichment' schema from the FastAPI backend.
+ * Returned by POST /words/enrich to pre-fill the word creation form.
+ */
+export interface WordEnrichment {
+  gender: "der" | "die" | "das" | "none";
+  word_nominative: string | null;
+  word_genitive: string | null;
+  word_plural: string | null;
+  translation: string;
+  category: "noun" | "verb" | "adjective" | "adverb" | "pronoun";
+  prepositions: string | null;
+  example_sentences: string | null;
+  idiomatic_usages: string | null;
+}

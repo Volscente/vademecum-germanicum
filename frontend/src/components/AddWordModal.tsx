@@ -1,6 +1,7 @@
+import { enrichWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -12,17 +13,24 @@ interface AddWordModalProps {
 export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
   // Controls whether to show AddWord UI form (initially set to False -> Not show)
   const [isOpen, setIsOpen] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
 
   // Reach Hook Form
   const {
     register, // Register input data and apply validation
     handleSubmit, // Receive form data after validation
     reset, // Clear form
+    setValue,
+    getValues,
+    watch,
     formState: { errors },
   } = useForm<WordFormValues>({
     resolver: zodResolver(wordSchema), // Schema validation
     defaultValues: { gender: "none", category: "noun" },
   });
+
+  const wordValue = watch("word"); // drives Enrich button disabled state
 
   const onSubmit = async (data: WordFormValues) => {
     try {
@@ -39,6 +47,37 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
       }
     } catch (error) {
       console.error("Failed to add word:", error);
+    }
+  };
+
+  /**
+   * Click handler for the "Enrich" button.
+   *
+   * Reads the current word input via getValues("word"), calls enrichWord,
+   * and populates each returned field via setValue. Sets enrichError on failure.
+   *
+   * Returns: void — side effects: setValue calls per enriched field, state updates
+   * Does not throw — errors are caught and written to enrichError state.
+   */
+  const onEnrich = async () => {
+    const word = getValues("word");
+    setIsEnriching(true);
+    setEnrichError(null);
+    try {
+      const enriched = await enrichWord(word);
+      setValue("translation", enriched.translation);
+      setValue("gender", enriched.gender);
+      setValue("category", enriched.category);
+      if (enriched.word_plural !== null) {
+        setValue("word_plural", enriched.word_plural);
+      }
+      if (enriched.example_sentences !== null) {
+        setValue("example_sentences", enriched.example_sentences);
+      }
+    } catch {
+      setEnrichError("Could not enrich word. Please try again.");
+    } finally {
+      setIsEnriching(false);
     }
   };
 
@@ -62,12 +101,28 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
                   German Word
                 </label>
-                <input
-                  {...register("word")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                />
+                <div className="flex gap-2 mt-1">
+                  <input
+                    {...register("word")}
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={onEnrich}
+                    disabled={!wordValue || isEnriching}
+                    className="flex items-center gap-1 px-3 py-2 rounded bg-forest-100 dark:bg-forest-700 text-forest-700 dark:text-forest-200 hover:bg-forest-200 dark:hover:bg-forest-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isEnriching ? "Enriching…" : "Enrich"}
+                  </button>
+                </div>
                 {errors.word && (
-                  <p className="text-red-600 text-xs">{errors.word.message}</p>
+                  <p className="text-red-600 text-xs mt-1">
+                    {errors.word.message}
+                  </p>
+                )}
+                {enrichError && (
+                  <p className="text-red-500 text-xs mt-1">{enrichError}</p>
                 )}
               </div>
 
@@ -84,6 +139,59 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                     {errors.translation.message}
                   </p>
                 )}
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                    Gender
+                  </label>
+                  <select
+                    {...register("gender")}
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  >
+                    <option value="none">none</option>
+                    <option value="der">der</option>
+                    <option value="die">die</option>
+                    <option value="das">das</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                    Category
+                  </label>
+                  <select
+                    {...register("category")}
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  >
+                    <option value="noun">noun</option>
+                    <option value="verb">verb</option>
+                    <option value="adjective">adjective</option>
+                    <option value="adverb">adverb</option>
+                    <option value="pronoun">pronoun</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  Plural
+                </label>
+                <input
+                  {...register("word_plural")}
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  Example Sentences
+                </label>
+                <textarea
+                  {...register("example_sentences")}
+                  rows={2}
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 resize-none"
+                />
               </div>
 
               <div className="flex justify-end gap-3 mt-6">

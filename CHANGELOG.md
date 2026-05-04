@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-05-04
+
+### Added
+
+- **Frontend**: "Enrich" button in `AddWordModal` that calls `POST /words/enrich` and pre-fills all form fields with LLM-generated metadata.
+- **Frontend**: New `api.ts` module with `enrichWord` fetch wrapper for the enrichment endpoint.
+- **Frontend**: UI inputs for `gender` (select), `category` (select), `word_plural` (text), and `example_sentences` (textarea) added to `AddWordModal`.
+- **Frontend**: `WordEnrichment` TypeScript interface in `word.ts` matching the backend `WordEnrichment` schema.
+- **Infrastructure**: `just empty_words` command to truncate the words table before applying breaking enum changes.
+- **Tests**: `test_enrich_endpoint_serialises_enums_as_strings` — verifies gender and category are serialised as lowercase strings, not Python enum repr.
+
+### Changed
+
+- **Frontend**: `wordSchema.ts` category enum aligned with backend `CategoryEnum` — replaced `"preposition"` and `"other"` with `"pronoun"`.
+
 ## [0.2.6] - 2026-05-03
 
 ### Added

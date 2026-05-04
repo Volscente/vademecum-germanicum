@@ -52,6 +52,10 @@ run_tests: check_root
 run_frontend: check_root
     cd frontend && npm run dev
 
+# Empty the words table — use before applying enum changes that break existing data (DESTRUCTIVE)
+empty_words: check_root
+    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "TRUNCATE TABLE words RESTART IDENTITY;"
+
 # Run backend + frontend and open browser
 dev: check_root
     #!/usr/bin/env bash

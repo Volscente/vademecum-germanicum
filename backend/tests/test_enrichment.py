@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from backend.enrichment import WordEnrichment
+from backend.models import CategoryEnum, GenderEnum
 from fastapi import HTTPException
 
 
@@ -68,3 +69,35 @@ def test_enrich_word_agent_error(client):
 
     assert response.status_code == 422
     assert "Enrichment failed" in response.json()["detail"]
+
+
+def test_enrich_endpoint_serialises_enums_as_strings(client):
+    """Verify that gender and category are serialised as lowercase strings.
+
+    The frontend Zod schema expects plain strings ("der", "noun"), not
+    the Python enum repr. A mismatch causes setValue to silently fail.
+    """
+    mock_result = WordEnrichment(
+        gender=GenderEnum.der,
+        category=CategoryEnum.noun,
+        translation="house",
+        word_nominative="Haus",
+        word_genitive="des Hauses",
+        word_plural="Häuser",
+        prepositions=None,
+        example_sentences=None,
+        idiomatic_usages=None,
+    )
+
+    with patch(
+        "backend.main.enrich_word",
+        new_callable=AsyncMock,
+        return_value=mock_result,
+    ):
+        response = client.post("/words/enrich", json={"word": "Haus"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["gender"] == "der"      # string, not "GenderEnum.der"
+    assert body["category"] == "noun"   # string, not "CategoryEnum.noun"
+    assert body["translation"] == "house"
