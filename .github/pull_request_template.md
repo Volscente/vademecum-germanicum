@@ -12,7 +12,7 @@ The PR resolves the issue #<issue_number> by ...
 
 ## Changelog
 
-###  Added
+### Added
 
 ### Changed
 
