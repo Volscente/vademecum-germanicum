@@ -1,5 +1,5 @@
 # Use a dedicated uv image to just grab the binary (Multi-stage build - Builder image)
-FROM ghcr.io/astral-sh/uv:0.5.21 AS uv_bin
+FROM ghcr.io/astral-sh/uv:0.7.3 AS uv_bin
 
 # Runner image (Multi-stage build - Runner image)
 FROM python:3.13-slim-bookworm

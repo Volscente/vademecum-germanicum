@@ -18,7 +18,6 @@ The `pyproject.toml` are organised:
 Commands:
 
 - Install dependency `uv add --package backend <dependency>`
-- Run backend `uv run --package backend uvicorn main:app --reload`
 
 ## Usage
 
@@ -26,7 +25,6 @@ Commands:
 
 The commands for running the docker-compose stack or the tests are inside the `justfile`.
 
-It is important to use:
+### Testing
 
-- `run_backend` starts backend DB and FastAPI service
-- `run_frontend` starts the web app
+It is important to ensure the Database service is running before lunching the testing command.

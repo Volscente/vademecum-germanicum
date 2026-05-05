@@ -1,36 +1,30 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
-Title: [Sprint N] Brief description of the task
+## Description
 
-## Notion Sprint
+**Goal**:
 
-<URL to the Notion sprint sub-page>
+**Deliverables**:
 
-## Scope
+- [ ]
 
-What this specific issue covers (narrow, concrete — not the feature scope).
+## Changelog
 
-## Acceptance Criteria
+### Added
 
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] ...
-
-## Notes
-
-Pointers to the spec file, known constraints, or implementation hints.
+### Changed
 
 ## Checklist
 
-- [ ] Spec file updated (`specs/planning/gh-{number}-{title}.md`)
-- [ ] Tests written
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-- [ ] README.md updated (if applicable)
+- [ ] Update Wiki
+- [ ] Update Documentation
+- [ ] Update `CHANGELOG.md`
+- [ ] Update `README.md`
+- [ ] Update project version
+- [ ] PR to dev
