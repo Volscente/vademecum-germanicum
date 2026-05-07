@@ -92,7 +92,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-sm w-full max-w-md">
             <h2 className="text-forest-800 dark:text-forest-100 text-xl font-bold mb-4">
               Add German Word
             </h2>
@@ -104,7 +104,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 <div className="flex gap-2 mt-1">
                   <input
                     {...register("word")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   />
                   <button
                     type="button"
@@ -132,7 +132,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 </label>
                 <input
                   {...register("translation")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                 />
                 {errors.translation && (
                   <p className="text-red-500 text-xs">
@@ -148,7 +148,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   </label>
                   <select
                     {...register("gender")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   >
                     <option value="none">none</option>
                     <option value="der">der</option>
@@ -162,7 +162,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   </label>
                   <select
                     {...register("category")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   >
                     <option value="noun">noun</option>
                     <option value="verb">verb</option>
@@ -179,7 +179,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 </label>
                 <input
                   {...register("word_plural")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                 />
               </div>
 
@@ -190,7 +190,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 <textarea
                   {...register("example_sentences")}
                   rows={2}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 resize-none"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400 resize-none"
                 />
               </div>
 
