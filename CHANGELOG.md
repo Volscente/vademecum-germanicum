@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-05-07
+
+### Changed
+
+- **Frontend**: Muted dark-mode colour palette across all components — shifted mid-range `forest-300`–`forest-500` accent text tokens one step lighter (toward `forest-100`/`forest-200`) to reduce neon-green saturation on dark backgrounds.
+- **Frontend**: Added `dark:focus:ring-forest-400` to all form inputs in `AddWordModal` and `SearchBar` so focus rings match the muted dark-mode palette.
+
 ## [0.2.7] - 2026-05-04
 
 ### Added
