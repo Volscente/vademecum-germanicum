@@ -98,13 +98,13 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                   German Word
                 </label>
                 <div className="flex gap-2 mt-1">
                   <input
                     {...register("word")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   />
                   <button
                     type="button"
@@ -127,12 +127,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
               </div>
 
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                   Translation
                 </label>
                 <input
                   {...register("translation")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                 />
                 {errors.translation && (
                   <p className="text-red-500 text-xs">
@@ -143,12 +143,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
 
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                     Gender
                   </label>
                   <select
                     {...register("gender")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   >
                     <option value="none">none</option>
                     <option value="der">der</option>
@@ -157,12 +157,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                  <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                     Category
                   </label>
                   <select
                     {...register("category")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                   >
                     <option value="noun">noun</option>
                     <option value="verb">verb</option>
@@ -174,17 +174,17 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
               </div>
 
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                   Plural
                 </label>
                 <input
                   {...register("word_plural")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400"
                 />
               </div>
 
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
+                <label className="text-forest-700 dark:text-forest-100 block text-sm font-medium">
                   Example Sentences
                 </label>
                 <textarea
@@ -198,7 +198,7 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-forest-600 dark:text-forest-300 hover:text-forest-800 dark:hover:text-forest-100 transition-colors"
+                  className="text-forest-600 dark:text-forest-200 hover:text-forest-800 dark:hover:text-forest-100 transition-colors"
                 >
                   Cancel
                 </button>

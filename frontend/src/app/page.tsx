@@ -47,7 +47,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold text-forest-900 dark:text-forest-50">
               Vademecum Germanicum
             </h1>
-            <p className="text-forest-700 dark:text-forest-300 mt-2">
+            <p className="text-forest-700 dark:text-forest-200 mt-2">
               Your personal German vocabulary vault.
             </p>
           </div>
@@ -69,11 +69,11 @@ export default function Home() {
         {/* Content Section */}
         <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
           {loading ? (
-            <p className="text-center py-10 text-forest-600 dark:text-forest-400">
+            <p className="text-center py-10 text-forest-600 dark:text-forest-300">
               Loading your vocabulary...
             </p>
           ) : words.length === 0 ? (
-            <p className="text-center py-10 text-forest-600 dark:text-forest-400 italic">
+            <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
               No words found. Time to add your first one!
             </p>
           ) : (

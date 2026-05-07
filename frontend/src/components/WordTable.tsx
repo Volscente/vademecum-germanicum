@@ -49,24 +49,24 @@ export default function WordTable({ words, onRefresh }: WordTableProps) {
                 className="hover:bg-forest-50 dark:hover:bg-forest-800 cursor-pointer transition-colors"
               >
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
-                  <span className="font-bold text-forest-700 dark:text-forest-300">
+                  <span className="font-bold text-forest-700 dark:text-forest-200">
                     {word.word}
                   </span>
                   {word.gender && word.gender !== "none" && (
-                    <span className="ml-2 text-xs font-medium text-forest-400 dark:text-forest-500 uppercase">
+                    <span className="ml-2 text-xs font-medium text-forest-400 dark:text-forest-400 uppercase">
                       ({word.gender})
                     </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-600 dark:text-forest-300">
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-600 dark:text-forest-200">
                   {word.translation}
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm">
-                  <span className="inline-flex items-center rounded-md bg-forest-50 dark:bg-forest-700 px-2 py-1 text-xs font-medium text-forest-700 dark:text-forest-200 ring-1 ring-inset ring-forest-700/10 dark:ring-forest-400/20">
+                  <span className="inline-flex items-center rounded-md bg-forest-50 dark:bg-forest-700 px-2 py-1 text-xs font-medium text-forest-700 dark:text-forest-100 ring-1 ring-inset ring-forest-700/10 dark:ring-forest-300/20">
                     {word.category || "N/A"}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-400 dark:text-forest-500">
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-forest-400 dark:text-forest-400">
                   {new Date(word.created_at).toLocaleDateString()}
                 </td>
               </tr>

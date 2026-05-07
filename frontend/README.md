@@ -44,7 +44,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 ## Constraints / invariants
 
 - The backend base URL is hardcoded to `http://localhost:8000` in both `page.tsx` and `lib/api.ts`; no environment-variable abstraction exists yet.
-- Dark mode state is read from `localStorage` only on the client; there is no SSR-safe hydration guard, so a flash-of-wrong-theme is possible on first load.
+- Dark mode is initialised by an inline `<script>` in `layout.tsx` that runs before React hydrates, reading `localStorage.theme` and the system `prefers-color-scheme` preference. The `<html>` element has `suppressHydrationWarning` set.
 - `wordSchema` is the single source of truth for form validation — both modals must use it; diverging from it will silently break backend contract alignment.
 - Without a search query, the word list is capped at 10 results (`?limit=10`); search results are uncapped.
 
@@ -54,3 +54,11 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Inline editing of words** — EditWordModal is read-only; editing is not yet implemented
 - **Pagination** — the table shows all search results without paging
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
+
+## Changelog
+
+### 2026-05-07
+
+- Muted dark-mode colour palette across `page.tsx`, `WordTable.tsx`, `ThemeToggle.tsx`, `AddWordModal.tsx`, and `SearchBar.tsx`: shifted mid-range `forest-300`–`forest-500` accent text tokens one step lighter to reduce neon-green saturation on dark backgrounds.
+- Added `dark:focus:ring-forest-400` to all form inputs in `AddWordModal` and the search input in `SearchBar`.
+- Corrected stale README constraint: dark-mode flash-of-wrong-theme fix is already implemented in `layout.tsx`.
