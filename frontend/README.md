@@ -57,7 +57,16 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Changelog
 
-### 2026-05-07
+### 2026-05-07 (v0.2.9)
+
+- Added `BookOpen` logo icon to the app header in `page.tsx` alongside the app name.
+- Standardised row padding to `py-3` across all `WordTable` cells.
+- Changed `shadow-xl` to `shadow-sm` on `AddWordModal` and `EditWordModal` modal containers.
+- Standardised input and select border radius to `rounded-md` in `AddWordModal`.
+- Added missing `dark:focus:ring-forest-400` to the `example_sentences` textarea in `AddWordModal`.
+- Increased `EditWordModal` field row spacing from `space-y-2` to `space-y-3`.
+
+### 2026-05-07 (v0.2.8)
 
 - Muted dark-mode colour palette across `page.tsx`, `WordTable.tsx`, `ThemeToggle.tsx`, `AddWordModal.tsx`, and `SearchBar.tsx`: shifted mid-range `forest-300`–`forest-500` accent text tokens one step lighter to reduce neon-green saturation on dark backgrounds.
 - Added `dark:focus:ring-forest-400` to all form inputs in `AddWordModal` and the search input in `SearchBar`.

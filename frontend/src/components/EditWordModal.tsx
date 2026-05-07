@@ -37,12 +37,12 @@ export default function EditWordModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-xl w-full max-w-md">
+      <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-sm w-full max-w-md">
         <h2 className="text-forest-700 dark:text-forest-200 text-xl font-bold mb-4">
           Word Details
         </h2>
 
-        <div className="space-y-2 mb-6">
+        <div className="space-y-3 mb-6">
           <p>
             <strong className="text-forest-700 dark:text-forest-300">
               German:

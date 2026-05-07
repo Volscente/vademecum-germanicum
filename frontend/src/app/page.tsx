@@ -5,6 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import ThemeToggle from "@/components/ThemeToggle";
 import WordTable from "@/components/WordTable";
 import { Word } from "@/types/word";
+import { BookOpen } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
@@ -44,10 +45,13 @@ export default function Home() {
         {/* Header Section */}
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-forest-900 dark:text-forest-50">
-              Vademecum Germanicum
-            </h1>
-            <p className="text-forest-700 dark:text-forest-200 mt-2">
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-8 h-8 text-forest-600 dark:text-forest-300" />
+              <h1 className="text-4xl font-bold text-forest-900 dark:text-forest-50">
+                Vademecum Germanicum
+              </h1>
+            </div>
+            <p className="text-forest-700 dark:text-forest-200 mt-2 ml-11">
               Your personal German vocabulary vault.
             </p>
           </div>
