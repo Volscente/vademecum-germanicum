@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Frontend**: Added `BookOpen` logo icon to the app header in `page.tsx` alongside the app name.
+- **Frontend**: Added logo icon to the app header in `page.tsx` alongside the app name.
 - **Frontend**: Standardised row padding from `py-4` to `py-3` across all `WordTable` cells for a tighter layout.
 - **Frontend**: Changed `shadow-xl` to `shadow-sm` on `AddWordModal` and `EditWordModal` containers for a flatter appearance.
 - **Frontend**: Standardised input and select border radius to `rounded-md` in `AddWordModal`.
