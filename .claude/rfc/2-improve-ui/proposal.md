@@ -14,6 +14,8 @@ scope-out:
   - ""
 milestones:
   - ""
+context-paths:
+  - "frontend/README.md"
 ---
 
 ## Problem
