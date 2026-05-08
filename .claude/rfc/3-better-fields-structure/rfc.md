@@ -144,13 +144,13 @@ Key design decisions:
 
 ## Effort Estimations {#effort-estimations}
 
-Total estimated effort: **{N} sessions**.
+Total estimated effort: **4.5 sessions**.
 
 | Milestone                | Description                                                                       | Est. effort | GitHub Issue |
 | :----------------------- | :-------------------------------------------------------------------------------- | :---------- | :----------- |
-| M1 — Data Model & API    | New ORM models, Pydantic schemas, migration script, updated CRUD endpoints, tests | {N}         | #{issue}     |
-| M2 — LLM Enrichment      | Updated `WordEnrichment` model, revised Gemini system prompt, integration test    | {N}         | #{issue}     |
-| M3 — Frontend Refactor   | Updated TS interfaces, Zod schema, AddWordModal, EditWordModal, WordTable          | {N}         | #{issue}     |
+| M1 — Data Model & API    | New ORM models, Pydantic schemas, migration script, updated CRUD endpoints, tests | 2.5         | #35     |
+| M2 — LLM Enrichment      | Updated `WordEnrichment` model, revised Gemini system prompt, integration test    | 0.5         | #36     |
+| M3 — Frontend Refactor   | Updated TS interfaces, Zod schema, AddWordModal, EditWordModal, WordTable          | 1.5         | #37    |
 
 ### Recommended Order
 
