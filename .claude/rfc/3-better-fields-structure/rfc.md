@@ -192,12 +192,12 @@ A:
 
 ## Risks & Open Questions {#risks--open-questions}
 
-| Risk / Question                                                                                                         | Likelihood | Mitigation / Answer                                                                                                                                           |
-| :---------------------------------------------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Manual schema migration causes data loss or inconsistency (no Alembic)                                                  | Medium     | Prepare and test the SQL script against a local DB backup before running on the live container; document rollback steps.                                       |
-| Gemini returns incomplete sense arrays (missing grammar patterns or examples), failing Pydantic validation               | Medium     | Set `min_length=1` on both lists; add explicit instructions in the system prompt; surface HTTP 422 errors in the UI with a "retry enrichment" affordance.      |
-| UI complexity overwhelms A1 learners despite progressive disclosure                                                     | Medium     | Default all Sense cards to collapsed; run a brief usability check with a sample word before finalising the card layout.                                        |
-| Breaking `GET /words/` response shape causes frontend errors if M1 and M3 are not deployed atomically                  | High       | Merge M1 (backend) and M3 (frontend) in a single coordinated deployment; do not expose the new API to the frontend until both are ready.                       |
+| Risk / Question                                                                                        | Likelihood | Mitigation / Answer                                                                                                                                                                 |
+| :----------------------------------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schema change incompatible with existing data                                                          | Low        | Not a concern at this stage — the database can be dropped and recreated with the new schema. No migration script needed.                                                            |
+| `WordEnrichment` Pydantic model and Gemini prompt must be refactored to produce the new sense structure | High       | Planned work in M2. `WordEnrichment` fields are updated to match the new `Sense`/`GrammarPattern`/`ExampleSentence` structure; the system prompt is revised accordingly.            |
+| UI complexity and progressive disclosure effectiveness                                                  | Low        | Not addressed at implementation time — real user feedback will be collected via a dedicated User Test validation session after M3 ships.                                             |
+| Frontend breakage between M1 and M3                                                                    | Low        | Not a concern — no production release is planned between M1 and M3. Backend and frontend can be developed in separate milestones without risk to live users.                        |
 
 ## References {#references}
 
