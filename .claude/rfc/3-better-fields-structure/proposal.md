@@ -13,7 +13,7 @@ scope-in:
   - "Contextual example sentences with translations"
   - "Grammatical governance (Prepositions & Cases)"
   - "Social register/tone tagging"
-  - "Morphological inflection data (Verbs/Nouns)"
+  - "Morphological inflection data (Verbs/Nouns/Conjugation)"
 scope-out:
   - "Lexical relationships: Synonyms and antonyms are deferred to a later phase."
   - "Audio generation: Voice synthesis is out of scope for this RFC."
@@ -38,7 +38,7 @@ Transition the data architecture from a "Flat Word Model" to a "Sense-Based Mode
 - **Contextual Example Sets:** Each word sense must provide at least three German example sentences with human-verified translations and context labels to demonstrate real-world application.
 - **Explicit Grammatical Governance:** All entries must specify the required preposition and its associated grammatical case, or explicitly state "no preposition required," to ensure correct sentence construction.
 - **Register and Tone Labeling:** Every word sense must be tagged with its social register (e.g., "Colloquial," "Formal") to guide the learner in choosing appropriate vocabulary.
-- **Core Inflection Data:** All words must display their essential morphological forms, including principal verb parts (with auxiliary verbs) or noun declension patterns and plurals.
+- **Morphological Verb DNA:** Every verb entry must display its auxiliary verb (haben/sein) and its three principal forms (Infinitive, Präteritum, Partizip II) to facilitate correct tense construction.
 
 ## Constraints
 
@@ -47,15 +47,17 @@ Transition the data architecture from a "Flat Word Model" to a "Sense-Based Mode
 
 ## Desired tech
 
-- **Expandable UI Cards:** To manage the increased information density on mobile screens.
-- **Relational Data Mapping:** Ensuring the "Sense" ID can be easily linked to future features like synonym mapping or spaced-repetition algorithms.
+- **"Quick Data" Signposting:** Collapsed UI cards must display high-priority "signpost" data—including the primary meaning summary, register tags, and mandatory preposition/case triggers—to provide immediate value without expansion.
+- **Progressive Disclosure UI:** Implementation of "Expandable Cards" for Senses and "Tap-to-Reveal" for translations to encourage active recall and keep the interface decluttered.
+- **Nested Grammar Pattern Arrays:** The data schema must support a one-to-many relationship between a "Sense" and its "Prepositions," allowing multiple grammatical patterns (Preposition + Case) to be rendered within a single meaning block.
 
 ## Integration context
 
 - **API Extension:** The existing word retrieval endpoint must be updated to return an array of "Sense" objects instead of a single string-based translation.
 - **Frontend Refactor:** The "Word Detail" view in the mobile app must be redesigned to accommodate the hierarchical structure of Senses, Prepositions, and Examples.
+- **Data Model:** The current Word data model must be update with the new Word Structure
+- **Word Enrichment:** The existing word enrichment endpoint must be updated to return the new Word Structure
 
 ## Known risks / concerns
 
-- **Data Sourcing:** Manually populating these detailed fields for a large database is time-consuming and requires high linguistic accuracy.
 - **UI Complexity:** Transitioning from a simple 5-field card to a multi-sense detailed view might overwhelm beginner (A1) users if not handled with progressive disclosure.
