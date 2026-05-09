@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-05-09
+
+### Added
+
+- **Frontend**: `Sense`, `GrammarPattern`, `ExampleSentence` TypeScript interfaces in `word.ts` mirroring the new backend sense graph.
+- **Frontend**: `grammarPatternSchema`, `exampleSentenceSchema`, `senseSchema` Zod schemas in `wordSchema.ts`; `wordSchema` extended with `auxiliary_verb`, `principal_forms`, and `senses` (min 1).
+- **Frontend**: `updateWord(wordId, data)` API helper in `api.ts` calling `PUT /words/{id}`.
+
+### Changed
+
+- **Frontend**: `AddWordModal` updated to sense-based form — `example_sentences` textarea replaced by `useFieldArray`-driven senses section; `onEnrich` now uses `reset()` with the full enrichment payload; optional verb morphology inputs (`auxiliary_verb`, `principal_forms`) shown when `category === "verb"`.
+- **Frontend**: `EditWordModal` rewritten as a full edit form — RHF + `useFieldArray` for senses, `useEffect` reset on word prop change, PUT submit, Re-enrich button, `onWordUpdated` callback; `isOpen` guard moved after all hook declarations.
+- **Frontend**: `WordTable` "Meaning" column now displays `senses[0]?.meaning_summary ?? ''`; `onWordUpdated` prop added to `EditWordModal` and wired as `onRefresh`.
+- **Frontend**: `Word` and `WordEnrichment` interfaces updated to sense-based structure — `Word` gains `auxiliary_verb`, `principal_forms`, `senses`; `WordEnrichment` drops old flat fields and gains `auxiliary_verb`, `principal_forms`, `senses`.
+
 ## [0.3.1] - 2026-05-09
 
 ### Changed

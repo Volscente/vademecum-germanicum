@@ -1,3 +1,23 @@
+export interface GrammarPattern {
+  id?: number;
+  preposition: string | null;
+  case: "Nominativ" | "Akkusativ" | "Dativ" | "Genitiv";
+}
+
+export interface ExampleSentence {
+  id?: number;
+  german: string;
+  english: string;
+}
+
+export interface Sense {
+  id?: number;
+  meaning_summary: string;
+  register: "Formal" | "Colloquial" | "Neutral" | "Technical";
+  grammar_patterns: GrammarPattern[];
+  example_sentences: ExampleSentence[];
+}
+
 /**
  * This interface matches the 'WordRead' schema from FastAPI backend.
  * It ensures TypeScript knows that every word from the DB has these exact fields.
@@ -6,9 +26,15 @@ export interface Word {
   id: number;
   word: string;
   gender?: string;
+  word_nominative?: string | null;
+  word_genitive?: string | null;
+  word_plural?: string | null;
   translation: string;
   category?: string;
+  auxiliary_verb?: string | null;
+  principal_forms?: string[] | null;
   created_at: string;
+  senses: Sense[];
 }
 
 /**
@@ -22,7 +48,7 @@ export interface WordEnrichment {
   word_plural: string | null;
   translation: string;
   category: "noun" | "verb" | "adjective" | "adverb" | "pronoun";
-  prepositions: string | null;
-  example_sentences: string | null;
-  idiomatic_usages: string | null;
+  auxiliary_verb: string | null;
+  principal_forms: string[] | null;
+  senses: Sense[];
 }
