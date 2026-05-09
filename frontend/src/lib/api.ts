@@ -1,4 +1,5 @@
-import { WordEnrichment } from "@/types/word";
+import { Word, WordEnrichment } from "@/types/word";
+import { WordFormValues } from "@/lib/wordSchema";
 
 /**
  * Call POST /words/enrich and return the enriched word metadata.
@@ -19,4 +20,33 @@ export async function enrichWord(word: string): Promise<WordEnrichment> {
   }
 
   return response.json() as Promise<WordEnrichment>;
+}
+
+/**
+ * Call PUT /words/{wordId} and return the updated word.
+ *
+ * @param wordId - The ID of the word to update.
+ * @param payload - The updated word data conforming to WordFormValues.
+ * @returns The updated Word object with the full sense graph.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function updateWord(
+  wordId: number,
+  payload: WordFormValues,
+): Promise<Word> {
+  const response = await fetch(`http://localhost:8000/words/${wordId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(
+      (detail as { detail?: string }).detail ??
+        `Update failed: ${response.status}`,
+    );
+  }
+
+  return response.json() as Promise<Word>;
 }

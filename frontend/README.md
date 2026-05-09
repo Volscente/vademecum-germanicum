@@ -8,27 +8,29 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 - **`src/app/page.tsx`** — Root page; owns all state (words list, search term, loading flag), fetches from the backend, and passes handlers down to child components
 - **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields
-- **`src/components/EditWordModal.tsx`** — Modal showing word details with a delete action; opened by clicking a row in WordTable
+- **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
 - **`src/components/SearchBar.tsx`** — Debounced search input (300 ms default) that fires an `onSearch` callback when the user pauses typing
 - **`src/components/ThemeToggle.tsx`** — Toggles light/dark mode by manipulating the `dark` CSS class on `<html>` and persisting the choice in `localStorage`
-- **`src/lib/api.ts`** — HTTP client; currently exposes `enrichWord` for calling `POST /words/enrich`
-- **`src/lib/wordSchema.ts`** — Zod schema (`wordSchema`) and derived type (`WordFormValues`) used by AddWordModal for form validation
-- **`src/types/word.ts`** — TypeScript interfaces (`Word`, `WordEnrichment`) that mirror the FastAPI backend schemas
+- **`src/lib/api.ts`** — HTTP client; exposes `enrichWord` (`POST /words/enrich`) and `updateWord` (`PUT /words/{id}`)
+- **`src/lib/wordSchema.ts`** — Zod schemas (`grammarPatternSchema`, `exampleSentenceSchema`, `senseSchema`, `wordSchema`) and derived type (`WordFormValues`) used by both modals for form validation
+- **`src/types/word.ts`** — TypeScript interfaces (`Word`, `WordEnrichment`, `Sense`, `GrammarPattern`, `ExampleSentence`) that mirror the FastAPI backend schemas
 - **`src/app/globals.css`** — Tailwind v4 theme configuration defining the custom `forest-*` green palette and class-based dark mode
 
 ## Public interfaces
 
 - `<AddWordModal onWordAdded>` — button + modal to create a word; calls `onWordAdded()` after a successful save
-- `<EditWordModal word isOpen onClose onWordDeleted>` — read-only word detail panel with a delete action
+- `<EditWordModal word isOpen onClose onWordDeleted onWordUpdated>` — full edit form for all word fields including senses; calls `onWordUpdated` after a successful save and `onWordDeleted` after deletion
 - `<WordTable words onRefresh>` — renders the vocabulary table; calls `onRefresh()` after a deletion
 - `<SearchBar onSearch placeholder? delay?>` — debounced search field; fires `onSearch(value)` after the configured delay
 - `<ThemeToggle />` — self-contained dark/light mode toggle; no props
-- `enrichWord(word: string): Promise<WordEnrichment>` — calls `POST /words/enrich` and returns AI-generated word metadata
-- `wordSchema` — Zod schema for word creation/editing form validation
+- `enrichWord(word: string): Promise<WordEnrichment>` — calls `POST /words/enrich` and returns AI-generated sense-based word metadata
+- `updateWord(wordId: number, data: WordFormValues): Promise<Word>` — calls `PUT /words/{id}` and returns the updated word with full sense graph
+- `wordSchema` — Zod schema for word creation/editing form validation (includes nested `senseSchema`, `grammarPatternSchema`, `exampleSentenceSchema`)
 - `WordFormValues` — TypeScript type inferred from `wordSchema`
-- `Word` — interface matching `WordRead` from the FastAPI backend
-- `WordEnrichment` — interface matching the enrichment response from the FastAPI backend
+- `Word` — interface matching `WordRead` from the FastAPI backend (includes `senses: Sense[]`)
+- `WordEnrichment` — interface matching the enrichment response (includes `senses: Sense[]`)
+- `Sense`, `GrammarPattern`, `ExampleSentence` — interfaces for the nested sense graph
 
 ## External dependencies
 
@@ -45,29 +47,23 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 - The backend base URL is hardcoded to `http://localhost:8000` in both `page.tsx` and `lib/api.ts`; no environment-variable abstraction exists yet.
 - Dark mode is initialised by an inline `<script>` in `layout.tsx` that runs before React hydrates, reading `localStorage.theme` and the system `prefers-color-scheme` preference. The `<html>` element has `suppressHydrationWarning` set.
-- `wordSchema` is the single source of truth for form validation — both modals must use it; diverging from it will silently break backend contract alignment.
+- `wordSchema` is the single source of truth for form validation — both `AddWordModal` and `EditWordModal` must use it; diverging will silently break backend contract alignment. The schema includes nested `senseSchema` with `min_length=1` enforced at the Zod layer.
 - Without a search query, the word list is capped at 10 results (`?limit=10`); search results are uncapped.
 
 ## Out of scope
 
 - **Authentication / user accounts** — all vocabulary is global and unauthenticated
-- **Inline editing of words** — EditWordModal is read-only; editing is not yet implemented
+- **Drag-to-reorder senses** — insertion order is preserved; reordering is not implemented
 - **Pagination** — the table shows all search results without paging
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
 
-### 2026-05-07 (v0.2.9)
+### 2026-05-09 (v0.3.2)
 
-- Added `BookOpen` logo icon to the app header in `page.tsx` alongside the app name.
-- Standardised row padding to `py-3` across all `WordTable` cells.
-- Changed `shadow-xl` to `shadow-sm` on `AddWordModal` and `EditWordModal` modal containers.
-- Standardised input and select border radius to `rounded-md` in `AddWordModal`.
-- Added missing `dark:focus:ring-forest-400` to the `example_sentences` textarea in `AddWordModal`.
-- Increased `EditWordModal` field row spacing from `space-y-2` to `space-y-3`.
-
-### 2026-05-07 (v0.2.8)
-
-- Muted dark-mode colour palette across `page.tsx`, `WordTable.tsx`, `ThemeToggle.tsx`, `AddWordModal.tsx`, and `SearchBar.tsx`: shifted mid-range `forest-300`–`forest-500` accent text tokens one step lighter to reduce neon-green saturation on dark backgrounds.
-- Added `dark:focus:ring-forest-400` to all form inputs in `AddWordModal` and the search input in `SearchBar`.
-- Corrected stale README constraint: dark-mode flash-of-wrong-theme fix is already implemented in `layout.tsx`.
+- Updated `word.ts`: added `Sense`, `GrammarPattern`, `ExampleSentence` interfaces; extended `Word` with `auxiliary_verb`, `principal_forms`, and `senses`; updated `WordEnrichment` to sense-based shape (removes old flat fields).
+- Updated `wordSchema.ts`: added `grammarPatternSchema`, `exampleSentenceSchema`, `senseSchema`; extended `wordSchema` with `auxiliary_verb`, `principal_forms`, and `senses`; removed top-level `example_sentences`.
+- Updated `api.ts`: added `updateWord(wordId, data)` for `PUT /words/{id}`; added `Word` import.
+- Updated `AddWordModal.tsx`: replaced `example_sentences` textarea with `useFieldArray`-driven senses section; updated `onEnrich` to use `reset()` with the full enriched payload; added optional verb morphology inputs (`auxiliary_verb`, `principal_forms`) shown when `category === "verb"`.
+- Rewrote `EditWordModal.tsx` as a full edit form: RHF + `useFieldArray` for senses, `useEffect` reset on `word` prop change, PUT submit via `updateWord`, Re-enrich button, delete retained; added `onWordUpdated` prop.
+- Updated `WordTable.tsx`: `Meaning` column now shows `senses[0]?.meaning_summary ?? ''`; added `onWordUpdated` prop to `EditWordModal` (wired as `onRefresh`).
