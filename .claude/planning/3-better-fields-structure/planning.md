@@ -40,7 +40,7 @@ All backend tests pass with the new `WordRead` shape; `GET /words/` returns a `s
 - `backend/src/backend/models.py` — new `Sense`, `GrammarPattern`, `ExampleSentence` ORM models; `Word` gains `auxiliary_verb`, `principal_forms` (JSON), and `senses` relationship; `CaseEnum` and `RegisterEnum` added
 - `backend/src/backend/schemas.py` — `SenseCreate`/`SenseRead`, `GrammarPatternCreate`/`GrammarPatternRead`, `ExampleSentenceCreate`/`ExampleSentenceRead`; `WordCreate`/`WordRead` embed `senses: list[...]`
 - `backend/src/backend/main.py` — updated `POST /words/`, `PUT /words/{id}` (transactional nested persistence), `GET /words/` (eager-load via `selectinload`)
-- `migration.sql` — manual SQL migration script (drops `translation` column, creates new tables)
+- `migration.sql` — manual SQL migration script (drops `prepositions`, `example_sentences`, `idiomatic_usages` columns; adds `auxiliary_verb` and `principal_forms` to `words`; creates new `senses`, `grammar_patterns`, `example_sentences` tables; `translation` column is retained)
 - `backend/tests/` — updated and new tests covering the new `WordRead` shape
 
 ### Technical Overview

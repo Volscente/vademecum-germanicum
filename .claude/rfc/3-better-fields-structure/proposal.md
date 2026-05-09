@@ -53,7 +53,7 @@ Transition the data architecture from a "Flat Word Model" to a "Sense-Based Mode
 
 ## Integration context
 
-- **API Extension:** The existing word retrieval endpoint must be updated to return an array of "Sense" objects instead of a single string-based translation.
+- **API Extension:** The existing word retrieval endpoint must be updated to return an array of "Sense" objects in addition to the existing `translation` field, which is retained as a quick-look summary for table display and search.
 - **Frontend Refactor:** The "Word Detail" view in the mobile app must be redesigned to accommodate the hierarchical structure of Senses, Prepositions, and Examples.
 - **Data Model:** The current Word data model must be update with the new Word Structure
 - **Word Enrichment:** The existing word enrichment endpoint must be updated to return the new Word Structure

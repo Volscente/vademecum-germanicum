@@ -7,7 +7,46 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .models import CategoryEnum, GenderEnum
+from .models import CaseEnum, CategoryEnum, GenderEnum, RegisterEnum
+
+
+class GrammarPatternCreate(BaseModel):
+    preposition: Optional[str] = None
+    case: CaseEnum
+
+
+class GrammarPatternRead(GrammarPatternCreate):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ExampleSentenceCreate(BaseModel):
+    german: str
+    english: str
+
+
+class ExampleSentenceRead(ExampleSentenceCreate):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SenseCreate(BaseModel):
+    meaning_summary: str
+    register: RegisterEnum
+    grammar_patterns: list[GrammarPatternCreate] = Field(min_length=1)
+    example_sentences: list[ExampleSentenceCreate] = Field(min_length=1)
+
+
+class SenseRead(BaseModel):
+    id: int
+    meaning_summary: str
+    register: RegisterEnum
+    grammar_patterns: list[GrammarPatternRead]
+    example_sentences: list[ExampleSentenceRead]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WordBase(BaseModel):
@@ -22,9 +61,8 @@ class WordBase(BaseModel):
     word_plural: Optional[str] = None
     translation: str
     category: Optional[CategoryEnum] = CategoryEnum.noun
-    prepositions: Optional[str] = None
-    example_sentences: Optional[str] = None
-    idiomatic_usages: Optional[str] = None
+    auxiliary_verb: Optional[str] = None
+    principal_forms: Optional[list[str]] = None
 
 
 class WordCreate(WordBase):
@@ -32,7 +70,7 @@ class WordCreate(WordBase):
     Input model: data used to create a word.
     """
 
-    pass
+    senses: list[SenseCreate] = Field(min_length=1)
 
 
 class WordRead(WordBase):
@@ -42,6 +80,7 @@ class WordRead(WordBase):
 
     id: int
     created_at: datetime
+    senses: list[SenseRead]
 
     # Tells Pydantic to read SQLAlchemy model attributes -> Required when converting DB objects into Pydantic
     model_config = ConfigDict(from_attributes=True)
@@ -60,3 +99,4 @@ class WordUpdate(WordBase):
 
     word: Optional[str] = None
     translation: Optional[str] = None
+    senses: Optional[list[SenseCreate]] = None
