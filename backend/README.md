@@ -7,8 +7,8 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 ## Key components
 
 - **`src/backend/main.py`** — FastAPI app entry point; defines all routes, CORS middleware, and creates DB tables on startup
-- **`src/backend/models.py`** — SQLAlchemy ORM model (`Word` table) plus `GenderEnum` and `CategoryEnum` enumerations
-- **`src/backend/schemas.py`** — Pydantic schemas for request/response validation: `WordCreate`, `WordRead`, `WordUpdate`, `WordEnrichRequest`
+- **`src/backend/models.py`** — SQLAlchemy ORM models: `Word`, `Sense`, `GrammarPattern`, `ExampleSentence`; plus enumerations `GenderEnum`, `CategoryEnum`, `CaseEnum`, `RegisterEnum`
+- **`src/backend/schemas.py`** — Pydantic schemas for request/response validation: `WordCreate`, `WordRead`, `WordUpdate`, `SenseCreate`, `SenseRead`, `GrammarPatternCreate/Read`, `ExampleSentenceCreate/Read`, `WordEnrichRequest`
 - **`src/backend/database.py`** — SQLAlchemy engine and session factory; exposes `get_db` FastAPI dependency
 - **`src/backend/enrichment.py`** — LLM enrichment logic; defines `WordEnrichment` output model and `enrich_word` async function using PydanticAI with Google Gemini
 
@@ -18,10 +18,10 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 
 - `GET /` — health check; returns a welcome message
 - `POST /words/enrich` — accepts `{"word": str}`, returns `WordEnrichment` with LLM-populated metadata
-- `POST /words/` — creates a new word; accepts `WordCreate`, returns `WordRead`
-- `GET /words/?skip&limit&search` — lists words with optional case-insensitive search on `word` and `translation` fields
-- `PUT /words/{word_id}` — partially updates a word; accepts `WordUpdate` (all fields optional), returns `WordRead`
-- `DELETE /words/{word_id}` — removes a word; returns HTTP 204
+- `POST /words/` — creates a new word with its full sense graph; accepts `WordCreate` (including `senses: list[SenseCreate]`), returns `WordRead`
+- `GET /words/?skip&limit&search` — lists words with optional case-insensitive search on `word` and `translation`; each word embeds its full sense graph
+- `PUT /words/{word_id}` — partially updates a word; accepts `WordUpdate` (all fields optional, including `senses`); when `senses` is provided it replaces the existing sense list; returns `WordRead`
+- `DELETE /words/{word_id}` — removes a word and all its senses (cascade); returns HTTP 204
 
 **Python-level:**
 
@@ -44,8 +44,10 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - `GEMINI_API_KEY` must be set for enrichment calls; requests to `POST /words/enrich` will return HTTP 422 if the key is missing or the LLM is unreachable.
 - CORS is locked to `http://localhost:3000`; any other origin is rejected.
 - `PUT /words/{word_id}` enforces that `word` and `translation`, if provided, are non-empty strings — an empty string triggers HTTP 400, not a schema validation error.
+- Every `WordCreate` must include at least one `Sense`; every `Sense` must include at least one `GrammarPattern` and at least one `ExampleSentence` — enforced at the Pydantic layer (HTTP 422 on violation).
+- `GrammarPattern.preposition` is nullable — `null` explicitly means "no preposition required".
 - The enrichment agent is instantiated per-request (no singleton); this is intentional to pick up env var changes without a restart, but adds per-call overhead.
-- DB tables are created at import time via `models.Base.metadata.create_all`; schema migrations are not managed (no Alembic).
+- DB tables are created at import time via `models.Base.metadata.create_all`; schema migrations are not managed (no Alembic). Breaking schema changes require a manual SQL migration script.
 
 ## Out of scope
 

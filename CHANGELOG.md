@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-05-09
+
+### Added
+
+- **Backend**: New ORM models `Sense`, `GrammarPattern`, `ExampleSentence` in `models.py`, forming a Word → Sense → GrammarPattern / ExampleSentence hierarchy.
+- **Backend**: New enumerations `CaseEnum` (`Nominativ`, `Akkusativ`, `Dativ`, `Genitiv`) and `RegisterEnum` (`Formal`, `Colloquial`, `Neutral`, `Technical`) in `models.py`.
+- **Backend**: New Pydantic schemas `SenseCreate`, `SenseRead`, `GrammarPatternCreate`, `GrammarPatternRead`, `ExampleSentenceCreate`, `ExampleSentenceRead` in `schemas.py`.
+- **Backend**: `auxiliary_verb` and `principal_forms` (JSON) fields on the `Word` model and `WordBase` schema for verb morphology.
+- **Backend**: `migration.sql` — manual SQL script to migrate the live `words` table (drops deprecated columns, adds verb morphology columns).
+- **Tests**: New test suite in `test_words.py` covering multi-sense persistence, empty-list constraint enforcement (`senses`, `grammar_patterns`, `example_sentences`), sense replace on PUT, and sense preservation when `senses` is absent from PUT.
+
+### Changed
+
+- **Backend**: `POST /words/` now accepts and persists a nested sense graph (`senses: list[SenseCreate]`) in a single transaction.
+- **Backend**: `GET /words/` uses `selectinload` to eager-load the full sense graph and avoid N+1 queries.
+- **Backend**: `PUT /words/{id}` atomically replaces the sense list when `senses` is included in the request body; omitting `senses` leaves existing senses unchanged.
+- **Backend**: `WordCreate`, `WordRead`, `WordUpdate` schemas extended with sense-family fields; deprecated flat-text fields (`prepositions`, `example_sentences`, `idiomatic_usages`) removed.
+- **Tests**: `valid_word_payload` fixture updated to include a `senses` array; existing word tests updated for the new `WordRead` shape.
+
 ## [0.2.9] - 2026-05-07
 
 ### Changed
