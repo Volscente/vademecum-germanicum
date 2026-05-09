@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-05-09
+
+### Changed
+
+- **Backend**: `WordEnrichment` model in `enrichment.py` updated to sense-based structure — drops flat legacy fields (`prepositions`, `example_sentences`, `idiomatic_usages`); adds `auxiliary_verb`, `principal_forms`, and `senses: list[SenseCreate]` (min 1).
+- **Backend**: `SYSTEM_PROMPT` in `enrichment.py` rewritten to instruct Gemini to produce the new nested sense array, including valid `register` and `case` enum values and a prohibition on empty `grammar_patterns` / `example_sentences` arrays.
+- **Tests**: Enrichment test suite updated to the new `WordEnrichment` shape — fixture and assertions reflect nested `senses`; new `test_enrich_word_returns_sense_array` test added; enum serialisation test extended to cover `register` and `case` fields.
+
 ## [0.3.0] - 2026-05-09
 
 ### Added
