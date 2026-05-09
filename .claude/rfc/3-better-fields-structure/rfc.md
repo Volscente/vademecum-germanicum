@@ -172,7 +172,7 @@ A: Pydantic validation fires before any database write, returns a structured HTT
 
 **Q: What happens to existing word entries after the migration?**
 
-A: The manual migration script drops the `translation` column and creates the new `sense`, `grammar_pattern`, and `example_sentence` tables. Existing word rows will have no senses — they appear in the UI with an empty sense list and a prompt to re-enrich or edit. No data from the old `translation` column is migrated automatically; users must re-enrich or manually add senses to existing words.
+A: The migration script adds `auxiliary_verb` and `principal_forms` columns to `words`, drops the now-redundant text-blob columns (`prepositions`, `example_sentences`, `idiomatic_usages`), and creates the new `senses`, `grammar_patterns`, and `example_sentences` tables. The `translation` column is **retained** — it serves as a quick-look summary for table display and search. Existing words keep their current `translation` value and appear in the UI with an empty sense list and a prompt to re-enrich or manually add senses.
 
 **Q: How does `GET /words/` change for the table view — won't eager-loading the full sense graph be heavy?**
 
