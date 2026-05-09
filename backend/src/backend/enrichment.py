@@ -11,6 +11,7 @@ from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
 
 from .models import CategoryEnum, GenderEnum
+from .schemas import SenseCreate
 
 
 class WordEnrichment(BaseModel):
@@ -26,54 +27,84 @@ class WordEnrichment(BaseModel):
     )
     word_genitive: str | None = Field(default=None, description="Genitive case form")
     word_plural: str | None = Field(default=None, description="Plural form")
-    translation: str = Field(description="English translation")
+    translation: str = Field(description="Short English translation for table display")
     category: CategoryEnum = Field(
         description="Word category: noun, verb, adjective, adverb, pronoun"
     )
-    prepositions: str | None = Field(
-        default=None, description="Common prepositions used with the word"
+    auxiliary_verb: str | None = Field(
+        default=None, description="haben or sein (verbs only)"
     )
-    example_sentences: str | None = Field(
-        default=None, description="Example sentences in German"
+    principal_forms: list[str] | None = Field(
+        default=None,
+        description="[Infinitiv, Präteritum 3sg, Partizip II] (verbs only)",
     )
-    idiomatic_usages: str | None = Field(
-        default=None, description="Idiomatic expressions using the word"
+    senses: list[SenseCreate] = Field(
+        min_length=1,
+        description="Ordered list of discrete meaning blocks for this word",
     )
 
 
 SYSTEM_PROMPT = """\
-You are a German language expert. Given a German word, provide accurate metadata.
+You are a German language expert. Given a German word, provide accurate metadata \
+in the structured format described below.
 
-Rules:
+Top-level fields:
 - gender: "der" for masculine, "die" for feminine, "das" for neuter nouns. \
 "none" for verbs, adjectives, adverbs, pronouns.
-- word_nominative: The nominative case form (typically same as the word for nouns).
+- word_nominative: The nominative case form (typically same as the word for nouns). \
+null if not applicable.
 - word_genitive: The genitive case form (e.g. "des Zuschlags"). null if not applicable.
 - word_plural: The plural form (e.g. "Zuschläge"). null if no plural exists.
-- translation: English translation.
+- translation: A short English translation used for table display (1–5 words).
 - category: One of "noun", "verb", "adjective", "adverb", "pronoun".
-- prepositions: Common prepositions used with this word, if any.
-- example_sentences: One or two example sentences in German.
-- idiomatic_usages: Common idiomatic expressions, if any.
+- auxiliary_verb: "haben" or "sein" for verbs only. null for all other categories.
+- principal_forms: A list of exactly three strings [Infinitiv, Präteritum 3sg, \
+Partizip II] for verbs only (e.g. ["warten", "wartete", "gewartet"]). \
+null for all other categories.
+
+Senses:
+- senses: A non-empty list of Sense objects. Each Sense represents one discrete \
+meaning of the word. Provide one Sense per distinct meaning.
+
+Each Sense must contain:
+- meaning_summary: A concise English description of this specific meaning (1–2 sentences).
+- register: The social/stylistic register of this meaning. \
+Must be exactly one of: "Formal", "Colloquial", "Neutral", "Technical".
+- grammar_patterns: A non-empty list of grammar pattern objects. \
+NEVER return an empty list — this is invalid.
+  Each grammar pattern must contain:
+  - preposition: The preposition required by this sense (e.g. "auf", "für"). \
+Use null (not the string "none") when no preposition is required.
+  - case: The grammatical case governed by this sense. \
+Must be exactly one of: "Nominativ", "Akkusativ", "Dativ", "Genitiv".
+- example_sentences: A non-empty list of example sentence objects. \
+NEVER return an empty list — this is invalid. Provide at least one example.
+  Each example sentence must contain:
+  - german: A natural German sentence using the word in this sense.
+  - english: The English translation of the German sentence.
 
 Be precise with German grammar. Return only factual linguistic information."""
 
 
 async def enrich_word(word: str) -> WordEnrichment:
-    """Enrich a German word with metadata using an LLM.
+    """Enrich a German word with sense-based metadata using an LLM.
 
-    Instantiates a PydanticAI agent with the GoogleModel provider,
-    sends the word as a prompt, and returns the validated structured output.
+    Instantiates a PydanticAI agent with GoogleModel, sends the word as a
+    prompt, and returns the validated structured output. Behaviour is unchanged
+    from the previous implementation; only the shape of the returned
+    WordEnrichment differs (now includes a senses list).
 
     Args:
-        word: The German word to enrich (e.g. "Zuschlag").
+        word: The German word to enrich (e.g. "warten").
 
     Returns:
         A WordEnrichment instance with gender, translation, category,
-        and other metadata fields populated by the LLM.
+        optional verb morphology fields, and a non-empty senses list,
+        each sense carrying grammar_patterns and example_sentences.
 
     Raises:
-        HTTPException (422): If the LLM returns invalid or unparseable output.
+        HTTPException (422): If the LLM returns output that fails Pydantic
+            validation (e.g. empty grammar_patterns or example_sentences).
         HTTPException (422): If the LLM provider is unreachable or returns an error.
     """
     api_key = os.getenv("GEMINI_API_KEY")

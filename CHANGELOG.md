@@ -5,6 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-05-09
+
+### Added
+
+- **Frontend**: `Sense`, `GrammarPattern`, `ExampleSentence` TypeScript interfaces in `word.ts` mirroring the new backend sense graph.
+- **Frontend**: `grammarPatternSchema`, `exampleSentenceSchema`, `senseSchema` Zod schemas in `wordSchema.ts`; `wordSchema` extended with `auxiliary_verb`, `principal_forms`, and `senses` (min 1).
+- **Frontend**: `updateWord(wordId, data)` API helper in `api.ts` calling `PUT /words/{id}`.
+
+### Changed
+
+- **Frontend**: `AddWordModal` updated to sense-based form — `example_sentences` textarea replaced by `useFieldArray`-driven senses section; `onEnrich` now uses `reset()` with the full enrichment payload; optional verb morphology inputs (`auxiliary_verb`, `principal_forms`) shown when `category === "verb"`.
+- **Frontend**: `EditWordModal` rewritten as a full edit form — RHF + `useFieldArray` for senses, `useEffect` reset on word prop change, PUT submit, Re-enrich button, `onWordUpdated` callback; `isOpen` guard moved after all hook declarations.
+- **Frontend**: `WordTable` "Meaning" column now displays `senses[0]?.meaning_summary ?? ''`; `onWordUpdated` prop added to `EditWordModal` and wired as `onRefresh`.
+- **Frontend**: `Word` and `WordEnrichment` interfaces updated to sense-based structure — `Word` gains `auxiliary_verb`, `principal_forms`, `senses`; `WordEnrichment` drops old flat fields and gains `auxiliary_verb`, `principal_forms`, `senses`.
+
+## [0.3.1] - 2026-05-09
+
+### Changed
+
+- **Backend**: `WordEnrichment` model in `enrichment.py` updated to sense-based structure — drops flat legacy fields (`prepositions`, `example_sentences`, `idiomatic_usages`); adds `auxiliary_verb`, `principal_forms`, and `senses: list[SenseCreate]` (min 1).
+- **Backend**: `SYSTEM_PROMPT` in `enrichment.py` rewritten to instruct Gemini to produce the new nested sense array, including valid `register` and `case` enum values and a prohibition on empty `grammar_patterns` / `example_sentences` arrays.
+- **Tests**: Enrichment test suite updated to the new `WordEnrichment` shape — fixture and assertions reflect nested `senses`; new `test_enrich_word_returns_sense_array` test added; enum serialisation test extended to cover `register` and `case` fields.
+
+## [0.3.0] - 2026-05-09
+
+### Added
+
+- **Backend**: New ORM models `Sense`, `GrammarPattern`, `ExampleSentence` in `models.py`, forming a Word → Sense → GrammarPattern / ExampleSentence hierarchy.
+- **Backend**: New enumerations `CaseEnum` (`Nominativ`, `Akkusativ`, `Dativ`, `Genitiv`) and `RegisterEnum` (`Formal`, `Colloquial`, `Neutral`, `Technical`) in `models.py`.
+- **Backend**: New Pydantic schemas `SenseCreate`, `SenseRead`, `GrammarPatternCreate`, `GrammarPatternRead`, `ExampleSentenceCreate`, `ExampleSentenceRead` in `schemas.py`.
+- **Backend**: `auxiliary_verb` and `principal_forms` (JSON) fields on the `Word` model and `WordBase` schema for verb morphology.
+- **Backend**: `migration.sql` — manual SQL script to migrate the live `words` table (drops deprecated columns, adds verb morphology columns).
+- **Tests**: New test suite in `test_words.py` covering multi-sense persistence, empty-list constraint enforcement (`senses`, `grammar_patterns`, `example_sentences`), sense replace on PUT, and sense preservation when `senses` is absent from PUT.
+
+### Changed
+
+- **Backend**: `POST /words/` now accepts and persists a nested sense graph (`senses: list[SenseCreate]`) in a single transaction.
+- **Backend**: `GET /words/` uses `selectinload` to eager-load the full sense graph and avoid N+1 queries.
+- **Backend**: `PUT /words/{id}` atomically replaces the sense list when `senses` is included in the request body; omitting `senses` leaves existing senses unchanged.
+- **Backend**: `WordCreate`, `WordRead`, `WordUpdate` schemas extended with sense-family fields; deprecated flat-text fields (`prepositions`, `example_sentences`, `idiomatic_usages`) removed.
+- **Tests**: `valid_word_payload` fixture updated to include a `senses` array; existing word tests updated for the new `WordRead` shape.
+
+## [0.2.9] - 2026-05-07
+
+### Changed
+
+- **Frontend**: Added logo icon to the app header in `page.tsx` alongside the app name.
+- **Frontend**: Standardised row padding from `py-4` to `py-3` across all `WordTable` cells for a tighter layout.
+- **Frontend**: Changed `shadow-xl` to `shadow-sm` on `AddWordModal` and `EditWordModal` containers for a flatter appearance.
+- **Frontend**: Standardised input and select border radius to `rounded-md` in `AddWordModal`.
+- **Frontend**: Added missing `dark:focus:ring-forest-400` to the `example_sentences` textarea in `AddWordModal`.
+- **Frontend**: Increased `EditWordModal` field row spacing from `space-y-2` to `space-y-3` for better readability.
+
+## [0.2.8] - 2026-05-07
+
+### Changed
+
+- **Frontend**: Muted dark-mode colour palette across all components — shifted mid-range `forest-300`–`forest-500` accent text tokens one step lighter (toward `forest-100`/`forest-200`) to reduce neon-green saturation on dark backgrounds.
+- **Frontend**: Added `dark:focus:ring-forest-400` to all form inputs in `AddWordModal` and `SearchBar` so focus rings match the muted dark-mode palette.
+
 ## [0.2.7] - 2026-05-04
 
 ### Added

@@ -1,36 +1,56 @@
 import { enrichWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle, Sparkles } from "lucide-react";
+import { PlusCircle, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 
-// Properties how page.tsx talks to AddWordModal
 interface AddWordModalProps {
-  onWordAdded: () => void; // Callback to refresh the table
+  onWordAdded: () => void;
 }
 
+const emptySense: WordFormValues["senses"][number] = {
+  meaning_summary: "",
+  register: "Neutral",
+  grammar_patterns: [{ preposition: null, case: "Akkusativ" }],
+  example_sentences: [{ german: "", english: "" }],
+};
+
+const inputClass =
+  "text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500 dark:focus:ring-forest-400";
+
+const labelClass = "text-forest-700 dark:text-forest-100 block text-sm font-medium";
+
 export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
-  // Controls whether to show AddWord UI form (initially set to False -> Not show)
   const [isOpen, setIsOpen] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
 
-  // Reach Hook Form
   const {
-    register, // Register input data and apply validation
-    handleSubmit, // Receive form data after validation
-    reset, // Clear form
-    setValue,
+    register,
+    handleSubmit,
+    reset,
     getValues,
     watch,
+    control,
     formState: { errors },
   } = useForm<WordFormValues>({
-    resolver: zodResolver(wordSchema), // Schema validation
-    defaultValues: { gender: "none", category: "noun" },
+    resolver: zodResolver(wordSchema),
+    defaultValues: {
+      gender: "none",
+      category: "noun",
+      senses: [{ ...emptySense }],
+    },
   });
 
-  const wordValue = watch("word"); // drives Enrich button disabled state
+  const { fields: senseFields, append, remove } = useFieldArray({
+    control,
+    name: "senses",
+  });
+
+  const watchedSenses = watch("senses") ?? [];
+  const watchedCategory = watch("category");
+  const wordValue = watch("word");
 
   const onSubmit = async (data: WordFormValues) => {
     try {
@@ -41,9 +61,9 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
       });
 
       if (response.ok) {
-        reset(); // Clear form
-        setIsOpen(false); // Close the UI form upon submitting new word to be added
-        onWordAdded(); // Trigger table refresh
+        reset({ gender: "none", category: "noun", senses: [{ ...emptySense }] });
+        setIsOpen(false);
+        onWordAdded();
       }
     } catch (error) {
       console.error("Failed to add word:", error);
@@ -54,9 +74,9 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
    * Click handler for the "Enrich" button.
    *
    * Reads the current word input via getValues("word"), calls enrichWord,
-   * and populates each returned field via setValue. Sets enrichError on failure.
+   * and resets the entire form with the enriched data via reset().
    *
-   * Returns: void — side effects: setValue calls per enriched field, state updates
+   * Returns: void — side effects: reset() call with enriched data, state updates.
    * Does not throw — errors are caught and written to enrichError state.
    */
   const onEnrich = async () => {
@@ -65,15 +85,16 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
     setEnrichError(null);
     try {
       const enriched = await enrichWord(word);
-      setValue("translation", enriched.translation);
-      setValue("gender", enriched.gender);
-      setValue("category", enriched.category);
-      if (enriched.word_plural !== null) {
-        setValue("word_plural", enriched.word_plural);
-      }
-      if (enriched.example_sentences !== null) {
-        setValue("example_sentences", enriched.example_sentences);
-      }
+      reset({
+        word,
+        translation: enriched.translation,
+        gender: enriched.gender,
+        category: enriched.category,
+        word_plural: enriched.word_plural ?? undefined,
+        auxiliary_verb: enriched.auxiliary_verb ?? undefined,
+        principal_forms: enriched.principal_forms ?? undefined,
+        senses: enriched.senses,
+      });
     } catch {
       setEnrichError("Could not enrich word. Please try again.");
     } finally {
@@ -92,20 +113,19 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-xl w-full max-w-md">
-            <h2 className="text-forest-800 dark:text-forest-100 text-xl font-bold mb-4">
+          <div className="bg-white dark:bg-forest-800 p-6 rounded-xl shadow-sm w-full max-w-lg max-h-[90vh] flex flex-col">
+            <h2 className="text-forest-800 dark:text-forest-100 text-xl font-bold mb-4 shrink-0">
               Add German Word
             </h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4 overflow-y-auto flex-1 pr-1"
+            >
+              {/* German Word + Enrich */}
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                  German Word
-                </label>
+                <label className={labelClass}>German Word</label>
                 <div className="flex gap-2 mt-1">
-                  <input
-                    {...register("word")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                  />
+                  <input {...register("word")} className={inputClass} />
                   <button
                     type="button"
                     onClick={onEnrich}
@@ -117,39 +137,27 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   </button>
                 </div>
                 {errors.word && (
-                  <p className="text-red-600 text-xs mt-1">
-                    {errors.word.message}
-                  </p>
+                  <p className="text-red-600 text-xs mt-1">{errors.word.message}</p>
                 )}
                 {enrichError && (
                   <p className="text-red-500 text-xs mt-1">{enrichError}</p>
                 )}
               </div>
 
+              {/* Translation */}
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                  Translation
-                </label>
-                <input
-                  {...register("translation")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                />
+                <label className={labelClass}>Translation</label>
+                <input {...register("translation")} className={inputClass} />
                 {errors.translation && (
-                  <p className="text-red-500 text-xs">
-                    {errors.translation.message}
-                  </p>
+                  <p className="text-red-500 text-xs">{errors.translation.message}</p>
                 )}
               </div>
 
+              {/* Gender + Category */}
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                    Gender
-                  </label>
-                  <select
-                    {...register("gender")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                  >
+                  <label className={labelClass}>Gender</label>
+                  <select {...register("gender")} className={inputClass}>
                     <option value="none">none</option>
                     <option value="der">der</option>
                     <option value="die">die</option>
@@ -157,13 +165,8 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                    Category
-                  </label>
-                  <select
-                    {...register("category")}
-                    className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                  >
+                  <label className={labelClass}>Category</label>
+                  <select {...register("category")} className={inputClass}>
                     <option value="noun">noun</option>
                     <option value="verb">verb</option>
                     <option value="adjective">adjective</option>
@@ -173,32 +176,179 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 </div>
               </div>
 
+              {/* Plural */}
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                  Plural
-                </label>
-                <input
-                  {...register("word_plural")}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500"
-                />
+                <label className={labelClass}>Plural</label>
+                <input {...register("word_plural")} className={inputClass} />
               </div>
 
+              {/* Verb Morphology — shown only for verbs */}
+              {watchedCategory === "verb" && (
+                <div className="border border-forest-200 dark:border-forest-600 rounded-lg p-3 space-y-3">
+                  <p className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
+                    Verb Morphology
+                  </p>
+                  <div>
+                    <label className={labelClass}>Auxiliary Verb</label>
+                    <select {...register("auxiliary_verb")} className={inputClass}>
+                      <option value="">—</option>
+                      <option value="haben">haben</option>
+                      <option value="sein">sein</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Principal Forms</label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      {["Infinitiv", "Präteritum", "Partizip II"].map((label, i) => (
+                        <div key={label}>
+                          <p className="text-xs text-forest-500 dark:text-forest-400 mb-1">
+                            {label}
+                          </p>
+                          <input
+                            {...register(`principal_forms.${i}`)}
+                            className={inputClass}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Senses */}
               <div>
-                <label className="text-forest-700 dark:text-forest-200 block text-sm font-medium">
-                  Example Sentences
-                </label>
-                <textarea
-                  {...register("example_sentences")}
-                  rows={2}
-                  className="text-forest-800 dark:text-forest-100 dark:bg-forest-900 border border-forest-300 dark:border-forest-600 w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-forest-500 resize-none"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className={labelClass}>Senses</label>
+                  <button
+                    type="button"
+                    onClick={() => append({ ...emptySense })}
+                    className="text-xs text-forest-600 dark:text-forest-300 hover:text-forest-800 dark:hover:text-forest-100 flex items-center gap-1"
+                  >
+                    <PlusCircle className="w-3 h-3" /> Add Sense
+                  </button>
+                </div>
+                {errors.senses && !Array.isArray(errors.senses) && (
+                  <p className="text-red-500 text-xs mb-2">
+                    {errors.senses.message}
+                  </p>
+                )}
+
+                <div className="space-y-4">
+                  {senseFields.map((field, sIdx) => (
+                    <div
+                      key={field.id}
+                      className="border border-forest-200 dark:border-forest-600 rounded-lg p-3 space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
+                          Sense {sIdx + 1}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => remove(sIdx)}
+                          disabled={senseFields.length === 1}
+                          className="text-red-400 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      {/* Meaning Summary */}
+                      <div>
+                        <label className={labelClass}>Meaning Summary</label>
+                        <input
+                          {...register(`senses.${sIdx}.meaning_summary`)}
+                          className={inputClass}
+                        />
+                        {errors.senses?.[sIdx]?.meaning_summary && (
+                          <p className="text-red-500 text-xs">
+                            {errors.senses[sIdx].meaning_summary?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Register */}
+                      <div>
+                        <label className={labelClass}>Register</label>
+                        <select
+                          {...register(`senses.${sIdx}.register`)}
+                          className={inputClass}
+                        >
+                          <option value="Neutral">Neutral</option>
+                          <option value="Formal">Formal</option>
+                          <option value="Colloquial">Colloquial</option>
+                          <option value="Technical">Technical</option>
+                        </select>
+                      </div>
+
+                      {/* Grammar Patterns */}
+                      <div>
+                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
+                          Grammar Patterns
+                        </p>
+                        {(watchedSenses[sIdx]?.grammar_patterns ?? []).map(
+                          (_, gpIdx) => (
+                            <div key={gpIdx} className="flex gap-2 mt-1">
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.preposition`,
+                                )}
+                                placeholder="Preposition (optional)"
+                                className={inputClass}
+                              />
+                              <select
+                                {...register(
+                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.case`,
+                                )}
+                                className={inputClass}
+                              >
+                                <option value="Akkusativ">Akkusativ</option>
+                                <option value="Dativ">Dativ</option>
+                                <option value="Nominativ">Nominativ</option>
+                                <option value="Genitiv">Genitiv</option>
+                              </select>
+                            </div>
+                          ),
+                        )}
+                      </div>
+
+                      {/* Example Sentences */}
+                      <div>
+                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
+                          Example Sentences
+                        </p>
+                        {(watchedSenses[sIdx]?.example_sentences ?? []).map(
+                          (_, exIdx) => (
+                            <div key={exIdx} className="space-y-1 mt-1">
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.example_sentences.${exIdx}.german`,
+                                )}
+                                placeholder="German sentence"
+                                className={inputClass}
+                              />
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.example_sentences.${exIdx}.english`,
+                                )}
+                                placeholder="English translation"
+                                className={inputClass}
+                              />
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-forest-600 dark:text-forest-300 hover:text-forest-800 dark:hover:text-forest-100 transition-colors"
+                  className="text-forest-600 dark:text-forest-200 hover:text-forest-800 dark:hover:text-forest-100 transition-colors"
                 >
                   Cancel
                 </button>
