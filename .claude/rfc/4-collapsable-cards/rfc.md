@@ -119,9 +119,9 @@ Total estimated effort: **2.5 sessions**.
 
 | Milestone                             | Description                                                                              | Est. effort  | GitHub Issue |
 | :------------------------------------ | :--------------------------------------------------------------------------------------- | :----------- | :----------- |
-| M1 — Collapsible Verb Morphology Card | Toggle state, CSS collapse, summary header, conditional rendering, error indicator       | 1 session    | #{issue}     |
-| M2 — Collapsible Sense Cards          | Per-sense boolean array, useEffect sync, summary headers, per-card error indicators      | 1 session    | #{issue}     |
-| M3 — Global "Collapse All" Button     | Modal header button, bulk state update for all cards                                     | 0.5 sessions | #{issue}     |
+| M1 — Collapsible Verb Morphology Card | Toggle state, CSS collapse, summary header, conditional rendering, error indicator       | 1 session    | #47{issue}     |
+| M2 — Collapsible Sense Cards          | Per-sense boolean array, useEffect sync, summary headers, per-card error indicators      | 1 session    | #48{issue}     |
+| M3 — Global "Collapse All" Button     | Modal header button, bulk state update for all cards                                     | 0.5 sessions | #49{issue}     |
 
 ### Recommended Order
 

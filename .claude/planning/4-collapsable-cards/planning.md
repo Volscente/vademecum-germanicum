@@ -22,7 +22,7 @@ TASK-1 ──► TASK-2 ──► TASK-3
 
 ## TASK-1 — Collapsible Verb Morphology Card
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Collapsible Verb Morphology Card](https://github.com/Volscente/vademecum-germanicum/issues/47)
 **Effort estimate:** 0.5 FTE-days
 
 ### Scope
@@ -53,7 +53,7 @@ No changes to `wordSchema.ts`, `api.ts`, or `types/word.ts`.
 
 ## TASK-2 — Collapsible Sense Cards
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Collapsible Sense Cards](https://github.com/Volscente/vademecum-germanicum/issues/48)
 **Effort estimate:** 0.5 FTE-days
 
 ### Scope
@@ -86,7 +86,7 @@ Card body collapse: same CSS pattern as TASK-1, indexed on `sensesCollapsed[n]`.
 
 ## TASK-3 — Global "Collapse All" Button
 
-**GitHub Issue:** #{issue}
+**GitHub Issue:** [Global "Collapse All" Button](https://github.com/Volscente/vademecum-germanicum/issues/49)
 **Effort estimate:** 0.25 FTE-days
 
 ### Scope
