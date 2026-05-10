@@ -59,6 +59,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Changelog
 
+### 2026-05-10 (v0.3.5)
+
+- Updated `EditWordModal.tsx`: added a "Collapse All" button just above the Verb Morphology card. Clicking it sets `verbMorphologyCollapsed = true` and maps all `sensesCollapsed` entries to `true` via a `handleCollapseAll` handler, condensing the entire modal to summary headers in one action.
+
 ### 2026-05-10 (v0.3.4)
 
 - Updated `EditWordModal.tsx`: each Sense card is now independently collapsible — click the header to toggle. Collapsed header shows the Meaning Summary (or "No summary yet" when empty) and a red error badge when the Sense has a validation error. Added `sensesCollapsed: boolean[]` state, a `useEffect` that keeps the array in sync with `useFieldArray` `fields` (handles append, remove, and Re-enrich reset), and `toggleSenseCollapsed(index)` handler. Fields remain mounted (CSS-only max-height toggle) so react-hook-form registration and validation are preserved in both states.

@@ -119,6 +119,11 @@ export default function EditWordModal({
     );
   };
 
+  const handleCollapseAll = (): void => {
+    setVerbMorphologyCollapsed(true);
+    setSensesCollapsed((prev) => prev.map(() => true));
+  };
+
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${word.word}"?`)) return;
 
@@ -243,6 +248,18 @@ export default function EditWordModal({
           <div>
             <label className={labelClass}>Plural</label>
             <input {...register("word_plural")} className={inputClass} />
+          </div>
+
+          {/* Collapse All */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleCollapseAll}
+              className="text-xs text-forest-600 dark:text-forest-300 hover:text-forest-800 dark:hover:text-forest-100 flex items-center gap-1"
+            >
+              <ChevronDown className="w-3 h-3" />
+              Collapse All
+            </button>
           </div>
 
           {/* Verb Morphology — shown only when auxiliary_verb is set or category is verb */}
