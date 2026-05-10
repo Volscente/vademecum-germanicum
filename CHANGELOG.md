@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2026-05-10
+
+### Added
+
+- **Frontend**: "Collapse All" button in `EditWordModal`, placed just above the Verb Morphology card. A single click sets `verbMorphologyCollapsed = true` and maps all `sensesCollapsed` entries to `true`, condensing the entire modal to summary headers in one action.
+
+## [0.3.4] - 2026-05-10
+
+### Changed
+
+- **Frontend**: `EditWordModal` Sense cards are now independently collapsible — click the section header to toggle expand/collapse. Collapsed header displays the Meaning Summary text (or "No summary yet" when empty) and a red error badge when the card contains a validation error. A `sensesCollapsed: boolean[]` state array, indexed parallel to `useFieldArray` `fields`, tracks per-card state; a `useEffect` keeps it in sync on append, remove, and Re-enrich reset. Fields remain mounted (CSS-only `max-height` toggle) so react-hook-form registration and validation are preserved in both states.
+
+## [0.3.3] - 2026-05-10
+
+### Changed
+
+- **Frontend**: `EditWordModal` Verb Morphology card is now collapsible — click the section header to toggle expand/collapse. Collapsed header displays a real-time summary of the three principal forms (Infinitiv · Präteritum · Partizip II) or `"—"` when empty. A red error badge on the collapsed header surfaces `auxiliary_verb` / `principal_forms` validation errors without requiring the user to expand the card. Fields remain mounted in the DOM (CSS-only `max-height` toggle) so react-hook-form registration and validation are preserved in both states.
+
 ## [0.3.2] - 2026-05-09
 
 ### Added

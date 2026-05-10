@@ -59,6 +59,18 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Changelog
 
+### 2026-05-10 (v0.3.5)
+
+- Updated `EditWordModal.tsx`: added a "Collapse All" button just above the Verb Morphology card. Clicking it sets `verbMorphologyCollapsed = true` and maps all `sensesCollapsed` entries to `true` via a `handleCollapseAll` handler, condensing the entire modal to summary headers in one action.
+
+### 2026-05-10 (v0.3.4)
+
+- Updated `EditWordModal.tsx`: each Sense card is now independently collapsible — click the header to toggle. Collapsed header shows the Meaning Summary (or "No summary yet" when empty) and a red error badge when the Sense has a validation error. Added `sensesCollapsed: boolean[]` state, a `useEffect` that keeps the array in sync with `useFieldArray` `fields` (handles append, remove, and Re-enrich reset), and `toggleSenseCollapsed(index)` handler. Fields remain mounted (CSS-only max-height toggle) so react-hook-form registration and validation are preserved in both states.
+
+### 2026-05-10 (v0.3.3)
+
+- Updated `EditWordModal.tsx`: Verb Morphology card is now collapsible — click the header to toggle; collapsed header shows a real-time principal-forms summary (Infinitiv · Präteritum · Partizip II, or "—" when empty); red error badge appears on the collapsed header when `principal_forms` or `auxiliary_verb` has a validation error; fields remain mounted (CSS-only collapse) so react-hook-form registration is preserved. Added `verbMorphologyCollapsed` state, `useWatch` for `principal_forms`, and `clsx`-driven `max-h` toggle.
+
 ### 2026-05-09 (v0.3.2)
 
 - Updated `word.ts`: added `Sense`, `GrammarPattern`, `ExampleSentence` interfaces; extended `Word` with `auxiliary_verb`, `principal_forms`, and `senses`; updated `WordEnrichment` to sense-based shape (removes old flat fields).
