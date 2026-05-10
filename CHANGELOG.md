@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2026-05-10
+
+### Changed
+
+- **Frontend**: `EditWordModal` Sense cards are now independently collapsible — click the section header to toggle expand/collapse. Collapsed header displays the Meaning Summary text (or "No summary yet" when empty) and a red error badge when the card contains a validation error. A `sensesCollapsed: boolean[]` state array, indexed parallel to `useFieldArray` `fields`, tracks per-card state; a `useEffect` keeps it in sync on append, remove, and Re-enrich reset. Fields remain mounted (CSS-only `max-height` toggle) so react-hook-form registration and validation are preserved in both states.
+
 ## [0.3.3] - 2026-05-10
 
 ### Changed

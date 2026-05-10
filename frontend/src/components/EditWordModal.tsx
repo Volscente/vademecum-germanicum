@@ -64,6 +64,7 @@ export default function EditWordModal({
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
   const [verbMorphologyCollapsed, setVerbMorphologyCollapsed] = useState(false);
+  const [sensesCollapsed, setSensesCollapsed] = useState<boolean[]>([]);
 
   const {
     register,
@@ -88,6 +89,17 @@ export default function EditWordModal({
     reset(buildDefaultValues(word));
   }, [word, reset]);
 
+  // Keep sensesCollapsed parallel to senseFields — push false for new entries, truncate on remove.
+  // Re-enrich calls reset() which repopulates senseFields from zero, expanding all cards.
+  useEffect(() => {
+    setSensesCollapsed((prev) => {
+      if (senseFields.length > prev.length) {
+        return [...prev, ...Array(senseFields.length - prev.length).fill(false)];
+      }
+      return prev.slice(0, senseFields.length);
+    });
+  }, [senseFields.length]);
+
   const watchedSenses = watch("senses") ?? [];
   const watchedCategory = watch("category");
 
@@ -100,6 +112,12 @@ export default function EditWordModal({
 
   // Guard comes after all hooks
   if (!isOpen) return null;
+
+  const toggleSenseCollapsed = (index: number): void => {
+    setSensesCollapsed((prev) =>
+      prev.map((collapsed, i) => (i === index ? !collapsed : collapsed)),
+    );
+  };
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${word.word}"?`)) return;
@@ -313,12 +331,35 @@ export default function EditWordModal({
               {senseFields.map((field, sIdx) => (
                 <div
                   key={field.id}
-                  className="border border-forest-200 dark:border-forest-600 rounded-lg p-3 space-y-3"
+                  className="border border-forest-200 dark:border-forest-600 rounded-lg p-3"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
-                      Sense {sIdx + 1}
-                    </p>
+                  {/* Card Header */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleSenseCollapsed(sIdx)}
+                      className="flex flex-1 items-center gap-2"
+                    >
+                      {sensesCollapsed[sIdx] ? (
+                        <ChevronDown className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                      ) : (
+                        <ChevronUp className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                      )}
+                      <span className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
+                        Sense {sIdx + 1}
+                      </span>
+                      {sensesCollapsed[sIdx] && (
+                        <span className="text-xs text-forest-500 dark:text-forest-400 truncate">
+                          {watchedSenses[sIdx]?.meaning_summary || "No summary yet"}
+                        </span>
+                      )}
+                      {!!errors.senses?.[sIdx] && sensesCollapsed[sIdx] && (
+                        <span
+                          className="ml-auto h-2 w-2 rounded-full bg-red-500"
+                          aria-label="Contains errors"
+                        />
+                      )}
+                    </button>
                     <button
                       type="button"
                       onClick={() => remove(sIdx)}
@@ -329,90 +370,100 @@ export default function EditWordModal({
                     </button>
                   </div>
 
-                  {/* Meaning Summary */}
-                  <div>
-                    <label className={labelClass}>Meaning Summary</label>
-                    <input
-                      {...register(`senses.${sIdx}.meaning_summary`)}
-                      className={inputClass}
-                    />
-                    {errors.senses?.[sIdx]?.meaning_summary && (
-                      <p className="text-red-500 text-xs">
-                        {errors.senses[sIdx].meaning_summary?.message}
-                      </p>
+                  {/* Card Body */}
+                  <div
+                    className={clsx(
+                      "overflow-hidden transition-[max-height] duration-300",
+                      sensesCollapsed[sIdx] ? "max-h-0" : "max-h-500",
                     )}
-                  </div>
+                  >
+                    <div className="space-y-3 pt-3">
+                      {/* Meaning Summary */}
+                      <div>
+                        <label className={labelClass}>Meaning Summary</label>
+                        <input
+                          {...register(`senses.${sIdx}.meaning_summary`)}
+                          className={inputClass}
+                        />
+                        {errors.senses?.[sIdx]?.meaning_summary && (
+                          <p className="text-red-500 text-xs">
+                            {errors.senses[sIdx].meaning_summary?.message}
+                          </p>
+                        )}
+                      </div>
 
-                  {/* Register */}
-                  <div>
-                    <label className={labelClass}>Register</label>
-                    <select
-                      {...register(`senses.${sIdx}.register`)}
-                      className={inputClass}
-                    >
-                      <option value="Neutral">Neutral</option>
-                      <option value="Formal">Formal</option>
-                      <option value="Colloquial">Colloquial</option>
-                      <option value="Technical">Technical</option>
-                    </select>
-                  </div>
+                      {/* Register */}
+                      <div>
+                        <label className={labelClass}>Register</label>
+                        <select
+                          {...register(`senses.${sIdx}.register`)}
+                          className={inputClass}
+                        >
+                          <option value="Neutral">Neutral</option>
+                          <option value="Formal">Formal</option>
+                          <option value="Colloquial">Colloquial</option>
+                          <option value="Technical">Technical</option>
+                        </select>
+                      </div>
 
-                  {/* Grammar Patterns */}
-                  <div>
-                    <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
-                      Grammar Patterns
-                    </p>
-                    {(watchedSenses[sIdx]?.grammar_patterns ?? []).map(
-                      (_, gpIdx) => (
-                        <div key={gpIdx} className="flex gap-2 mt-1">
-                          <input
-                            {...register(
-                              `senses.${sIdx}.grammar_patterns.${gpIdx}.preposition`,
-                            )}
-                            placeholder="Preposition (optional)"
-                            className={inputClass}
-                          />
-                          <select
-                            {...register(
-                              `senses.${sIdx}.grammar_patterns.${gpIdx}.case`,
-                            )}
-                            className={inputClass}
-                          >
-                            <option value="Akkusativ">Akkusativ</option>
-                            <option value="Dativ">Dativ</option>
-                            <option value="Nominativ">Nominativ</option>
-                            <option value="Genitiv">Genitiv</option>
-                          </select>
-                        </div>
-                      ),
-                    )}
-                  </div>
+                      {/* Grammar Patterns */}
+                      <div>
+                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
+                          Grammar Patterns
+                        </p>
+                        {(watchedSenses[sIdx]?.grammar_patterns ?? []).map(
+                          (_, gpIdx) => (
+                            <div key={gpIdx} className="flex gap-2 mt-1">
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.preposition`,
+                                )}
+                                placeholder="Preposition (optional)"
+                                className={inputClass}
+                              />
+                              <select
+                                {...register(
+                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.case`,
+                                )}
+                                className={inputClass}
+                              >
+                                <option value="Akkusativ">Akkusativ</option>
+                                <option value="Dativ">Dativ</option>
+                                <option value="Nominativ">Nominativ</option>
+                                <option value="Genitiv">Genitiv</option>
+                              </select>
+                            </div>
+                          ),
+                        )}
+                      </div>
 
-                  {/* Example Sentences */}
-                  <div>
-                    <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
-                      Example Sentences
-                    </p>
-                    {(watchedSenses[sIdx]?.example_sentences ?? []).map(
-                      (_, exIdx) => (
-                        <div key={exIdx} className="space-y-1 mt-1">
-                          <input
-                            {...register(
-                              `senses.${sIdx}.example_sentences.${exIdx}.german`,
-                            )}
-                            placeholder="German sentence"
-                            className={inputClass}
-                          />
-                          <input
-                            {...register(
-                              `senses.${sIdx}.example_sentences.${exIdx}.english`,
-                            )}
-                            placeholder="English translation"
-                            className={inputClass}
-                          />
-                        </div>
-                      ),
-                    )}
+                      {/* Example Sentences */}
+                      <div>
+                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
+                          Example Sentences
+                        </p>
+                        {(watchedSenses[sIdx]?.example_sentences ?? []).map(
+                          (_, exIdx) => (
+                            <div key={exIdx} className="space-y-1 mt-1">
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.example_sentences.${exIdx}.german`,
+                                )}
+                                placeholder="German sentence"
+                                className={inputClass}
+                              />
+                              <input
+                                {...register(
+                                  `senses.${sIdx}.example_sentences.${exIdx}.english`,
+                                )}
+                                placeholder="English translation"
+                                className={inputClass}
+                              />
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
