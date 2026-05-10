@@ -2,9 +2,10 @@ import { enrichWord, updateWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import { Word } from "@/types/word";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle, RefreshCw, Trash2 } from "lucide-react";
+import { clsx } from "clsx";
+import { ChevronDown, ChevronUp, PlusCircle, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 
 interface EditWordModalProps {
   word: Word;
@@ -62,6 +63,7 @@ export default function EditWordModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
+  const [verbMorphologyCollapsed, setVerbMorphologyCollapsed] = useState(false);
 
   const {
     register,
@@ -88,6 +90,13 @@ export default function EditWordModal({
 
   const watchedSenses = watch("senses") ?? [];
   const watchedCategory = watch("category");
+
+  const watchedPrincipalForms = useWatch({ control, name: "principal_forms" });
+  const verbMorphologySummary =
+    watchedPrincipalForms?.[0] && watchedPrincipalForms?.[1] && watchedPrincipalForms?.[2]
+      ? `${watchedPrincipalForms[0]} · ${watchedPrincipalForms[1]} · ${watchedPrincipalForms[2]}`
+      : "—";
+  const verbMorphologyHasError = !!errors.principal_forms || !!errors.auxiliary_verb;
 
   // Guard comes after all hooks
   if (!isOpen) return null;
@@ -220,32 +229,63 @@ export default function EditWordModal({
 
           {/* Verb Morphology — shown only when auxiliary_verb is set or category is verb */}
           {(watchedCategory === "verb" || word.auxiliary_verb) && (
-            <div className="border border-forest-200 dark:border-forest-600 rounded-lg p-3 space-y-3">
-              <p className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
-                Verb Morphology
-              </p>
-              <div>
-                <label className={labelClass}>Auxiliary Verb</label>
-                <select {...register("auxiliary_verb")} className={inputClass}>
-                  <option value="">—</option>
-                  <option value="haben">haben</option>
-                  <option value="sein">sein</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>Principal Forms</label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  {["Infinitiv", "Präteritum", "Partizip II"].map((label, i) => (
-                    <div key={label}>
-                      <p className="text-xs text-forest-500 dark:text-forest-400 mb-1">
-                        {label}
-                      </p>
-                      <input
-                        {...register(`principal_forms.${i}`)}
-                        className={inputClass}
-                      />
+            <div className="border border-forest-200 dark:border-forest-600 rounded-lg p-3">
+              <button
+                type="button"
+                onClick={() => setVerbMorphologyCollapsed((prev) => !prev)}
+                className="flex w-full items-center gap-2"
+              >
+                {verbMorphologyCollapsed ? (
+                  <ChevronDown className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                ) : (
+                  <ChevronUp className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                )}
+                <span className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
+                  Verb Morphology
+                </span>
+                {verbMorphologyCollapsed && (
+                  <span className="ml-2 text-xs text-forest-500 dark:text-forest-400">
+                    {verbMorphologySummary}
+                  </span>
+                )}
+                {verbMorphologyHasError && (
+                  <span
+                    className="ml-auto h-2 w-2 rounded-full bg-red-500"
+                    aria-label="Contains errors"
+                  />
+                )}
+              </button>
+              <div
+                className={clsx(
+                  "overflow-hidden transition-[max-height] duration-300",
+                  verbMorphologyCollapsed ? "max-h-0" : "max-h-500",
+                )}
+              >
+                <div className="space-y-3 pt-3">
+                  <div>
+                    <label className={labelClass}>Auxiliary Verb</label>
+                    <select {...register("auxiliary_verb")} className={inputClass}>
+                      <option value="">—</option>
+                      <option value="haben">haben</option>
+                      <option value="sein">sein</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Principal Forms</label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      {["Infinitiv", "Präteritum", "Partizip II"].map((label, i) => (
+                        <div key={label}>
+                          <p className="text-xs text-forest-500 dark:text-forest-400 mb-1">
+                            {label}
+                          </p>
+                          <input
+                            {...register(`principal_forms.${i}`)}
+                            className={inputClass}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>

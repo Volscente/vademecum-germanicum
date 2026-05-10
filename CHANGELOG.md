@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-05-10
+
+### Changed
+
+- **Frontend**: `EditWordModal` Verb Morphology card is now collapsible — click the section header to toggle expand/collapse. Collapsed header displays a real-time summary of the three principal forms (Infinitiv · Präteritum · Partizip II) or `"—"` when empty. A red error badge on the collapsed header surfaces `auxiliary_verb` / `principal_forms` validation errors without requiring the user to expand the card. Fields remain mounted in the DOM (CSS-only `max-height` toggle) so react-hook-form registration and validation are preserved in both states.
+
 ## [0.3.2] - 2026-05-09
 
 ### Added

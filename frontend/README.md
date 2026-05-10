@@ -59,6 +59,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Changelog
 
+### 2026-05-10 (v0.3.3)
+
+- Updated `EditWordModal.tsx`: Verb Morphology card is now collapsible — click the header to toggle; collapsed header shows a real-time principal-forms summary (Infinitiv · Präteritum · Partizip II, or "—" when empty); red error badge appears on the collapsed header when `principal_forms` or `auxiliary_verb` has a validation error; fields remain mounted (CSS-only collapse) so react-hook-form registration is preserved. Added `verbMorphologyCollapsed` state, `useWatch` for `principal_forms`, and `clsx`-driven `max-h` toggle.
+
 ### 2026-05-09 (v0.3.2)
 
 - Updated `word.ts`: added `Sense`, `GrammarPattern`, `ExampleSentence` interfaces; extended `Word` with `auxiliary_verb`, `principal_forms`, and `senses`; updated `WordEnrichment` to sense-based shape (removes old flat fields).
