@@ -28,7 +28,8 @@ milestones:
   - "Review Area UI: Sense Card layout with collapsible sections and conditional verb logic"
   - "Review workflow: Card transitions, difficulty metadata updates, and completion screen routing"
 context-paths:
-  - ""                  
+  - "frontend/README.md"
+  - "backend/README.md"
 ---
 
 ## Problem
