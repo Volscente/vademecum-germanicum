@@ -52,6 +52,12 @@ run_tests: check_root
 run_frontend: check_root
     cd frontend && npm run dev
 
+# Apply the sense review columns migration to the running PostgreSQL container
+# Run order: just run_backend_recreate first (starts all containers), then just run_migration
+run_migration: check_root
+    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB \
+        -f /dev/stdin < migrations/add_sense_review_columns.sql
+
 # Empty the words table — use before applying enum changes that break existing data (DESTRUCTIVE)
 empty_words: check_root
     docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "TRUNCATE TABLE words RESTART IDENTITY;"

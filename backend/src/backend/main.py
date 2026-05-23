@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import or_
@@ -55,6 +57,98 @@ def _build_sense_orm(sense_data: schemas.SenseCreate) -> models.Sense:
 @app.get("/")
 def read_root():
     return {"message": "Willkommen! The API is alive and connected to DB."}
+
+
+@app.get("/senses/", response_model=list[schemas.SenseWithWordRead])
+def read_senses(db: Session = Depends(get_db)) -> list[schemas.SenseWithWordRead]:
+    """Return all senses with their parent word's key fields embedded.
+
+    Joins Sense with Word to include word, translation, gender, and category
+    in each response item, avoiding frontend joins. Uses selectinload for
+    grammar_patterns and example_sentences to prevent N+1 queries.
+
+    Args:
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        List of Sense ORM instances with Word fields accessible, serialized
+        as list[SenseWithWordRead] by FastAPI.
+    """
+    senses = (
+        db.query(models.Sense)
+        .options(
+            selectinload(models.Sense.word),
+            selectinload(models.Sense.grammar_patterns),
+            selectinload(models.Sense.example_sentences),
+        )
+        .all()
+    )
+    return [
+        schemas.SenseWithWordRead(
+            id=sense.id,
+            meaning_summary=sense.meaning_summary,
+            register=sense.register,
+            difficulty_level=sense.difficulty_level,
+            last_reviewed_at=sense.last_reviewed_at,
+            grammar_patterns=sense.grammar_patterns,
+            example_sentences=sense.example_sentences,
+            word=sense.word.word,
+            translation=sense.word.translation,
+            gender=sense.word.gender,
+            category=sense.word.category,
+            word_plural=sense.word.word_plural,
+            auxiliary_verb=sense.word.auxiliary_verb,
+            principal_forms=sense.word.principal_forms,
+        )
+        for sense in senses
+    ]
+
+
+@app.put("/senses/{sense_id}/review", response_model=schemas.SenseRead)
+def update_sense_review(
+    sense_id: int,
+    review_update: schemas.SenseReviewUpdate,
+    db: Session = Depends(get_db),
+) -> models.Sense:
+    """Validate difficulty level, stamp last_reviewed_at, and persist the update.
+
+    Validates that the incoming difficulty_level string is a member of
+    DifficultyLevelEnum. Sets last_reviewed_at to datetime.now(timezone.utc) on the
+    server side, keeping timestamp authority in the backend.
+    Use `from datetime import datetime, timezone` — datetime.utcnow() is deprecated.
+
+    Args:
+        sense_id: Primary key of the sense to update.
+        review_update: Request body carrying the chosen difficulty_level string.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        The updated Sense ORM instance, serialized as SenseRead.
+
+    Raises:
+        HTTPException (404): If no sense with sense_id exists in the database.
+        HTTPException (422): If difficulty_level is not a valid DifficultyLevelEnum value.
+    """
+    db_sense = (
+        db.query(models.Sense)
+        .options(
+            selectinload(models.Sense.grammar_patterns),
+            selectinload(models.Sense.example_sentences),
+        )
+        .filter(models.Sense.id == sense_id)
+        .first()
+    )
+
+    if not db_sense:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Sense with ID {sense_id} not found!"
+        )
+
+    db_sense.difficulty_level = review_update.difficulty_level
+    db_sense.last_reviewed_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(db_sense)
+    return db_sense
 
 
 @app.post("/words/enrich", response_model=WordEnrichment)

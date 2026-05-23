@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .models import CaseEnum, CategoryEnum, GenderEnum, RegisterEnum
+from .models import CaseEnum, CategoryEnum, DifficultyLevelEnum, GenderEnum, RegisterEnum
 
 
 class GrammarPatternCreate(BaseModel):
@@ -43,8 +43,26 @@ class SenseRead(BaseModel):
     id: int
     meaning_summary: str
     register: RegisterEnum
+    difficulty_level: Optional[DifficultyLevelEnum] = None
+    last_reviewed_at: Optional[datetime] = None
     grammar_patterns: list[GrammarPatternRead]
     example_sentences: list[ExampleSentenceRead]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SenseReviewUpdate(BaseModel):
+    difficulty_level: DifficultyLevelEnum
+
+
+class SenseWithWordRead(SenseRead):
+    word: str
+    translation: str
+    gender: Optional[GenderEnum] = None
+    category: Optional[CategoryEnum] = None
+    word_plural: Optional[str] = None
+    auxiliary_verb: Optional[str] = None
+    principal_forms: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
