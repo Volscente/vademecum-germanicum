@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-05-23
+
+### Added
+
+- **Frontend**: New `ReviewCompleteScreen` React component — session-end screen with "Return to Vocabulary Area" and "Return to Learning Area" navigation buttons.
+
+### Changed
+
+- **Frontend**: `ReviewArea` updated with `currentIndex` and `isTransitioning` state to drive card progression; `onDifficultySelect` now calls `updateSenseReview` (fire-and-forget) and advances the card after a 150 ms opacity + `translate-x` CSS transition; progress counter reflects the current card index; `ReviewCompleteScreen` is rendered when the queue is exhausted; `onNavigate` prop is now consumed (was declared but unused).
+
 ## [0.4.2] - 2026-05-23
 
 ### Added
