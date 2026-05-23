@@ -14,8 +14,17 @@ export interface Sense {
   id?: number;
   meaning_summary: string;
   register: "Formal" | "Colloquial" | "Neutral" | "Technical";
+  difficulty_level?: "Easy" | "Medium" | "Hard" | "VeryHard";
+  last_reviewed_at?: string | null;
   grammar_patterns: GrammarPattern[];
   example_sentences: ExampleSentence[];
+}
+
+export interface SenseWithWord extends Sense {
+  word: string;
+  translation: string;
+  gender?: string;
+  category?: string;
 }
 
 /**

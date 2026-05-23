@@ -1,0 +1,3 @@
+ALTER TABLE senses
+    ADD COLUMN IF NOT EXISTS difficulty_level VARCHAR NOT NULL DEFAULT 'Medium',
+    ADD COLUMN IF NOT EXISTS last_reviewed_at TIMESTAMP NULL;
