@@ -6,7 +6,9 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Key components
 
-- **`src/app/page.tsx`** — Root page; owns all state (words list, search term, loading flag), fetches from the backend, and passes handlers down to child components
+- **`src/app/page.tsx`** — Root page; owns all state (words list, search term, loading flag, active area, review queue), fetches from the backend, and passes handlers down to child components
+- **`src/components/AreaToggle.tsx`** — Pill-style toggle switch between the Vocabulary Area and the Learning Area; hidden when the Review Area is active
+- **`src/components/SensesTable.tsx`** — Senses table for the Learning Area; fetches all senses via `getSenses()`, renders per-row To Review badges via `toReview()`, maintains local multi-select state, and fires `onStartReview` with the selected senses
 - **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields
 - **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
@@ -20,6 +22,8 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Public interfaces
 
+- `<AreaToggle area onAreaChange>` — pill toggle between `"vocabulary"` and `"learning"`; not rendered when `area === "review"`
+- `<SensesTable onStartReview>` — senses table with multi-select checkboxes and "Start Review" button; calls `onStartReview(selected: SenseWithWord[])` to hand off the review queue
 - `<AddWordModal onWordAdded>` — button + modal to create a word; calls `onWordAdded()` after a successful save
 - `<EditWordModal word isOpen onClose onWordDeleted onWordUpdated>` — full edit form for all word fields including senses; calls `onWordUpdated` after a successful save and `onWordDeleted` after deletion
 - `<WordTable words onRefresh>` — renders the vocabulary table; calls `onRefresh()` after a deletion
@@ -62,6 +66,12 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-05-23 (v0.4.1)
+
+- Added `AreaToggle.tsx`: pill-style toggle switching between Vocabulary and Learning areas, styled with the `forest-*` palette.
+- Added `SensesTable.tsx`: Learning Area table fetching all senses via `getSenses()`, computing To Review badges via `toReview()`, managing local multi-select state, and triggering review sessions via `onStartReview`.
+- Updated `page.tsx`: added `area` (`"vocabulary" | "learning" | "review"`) and `reviewQueue` state; `SearchBar` now renders only in Vocabulary Area; `AreaToggle` renders above the content pane (hidden in Review Area); content pane conditionally renders `WordTable`, `SensesTable`, or a Review Area placeholder.
 
 ### 2026-05-23 (v0.4.0)
 

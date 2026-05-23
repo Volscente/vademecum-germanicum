@@ -1,10 +1,12 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
 import AddWordModal from "@/components/AddWordModal";
+import AreaToggle from "@/components/AreaToggle";
 import SearchBar from "@/components/SearchBar";
+import SensesTable from "@/components/SensesTable";
 import ThemeToggle from "@/components/ThemeToggle";
 import WordTable from "@/components/WordTable";
-import { Word } from "@/types/word";
+import { SenseWithWord, Word } from "@/types/word";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
@@ -13,7 +15,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 2. Data Fetching: Request words from the FastAPI backend service, including search
+  // 2. Area State Management: 'area' controls the active view, 'reviewQueue' holds senses selected for review
+  const [area, setArea] = useState<"vocabulary" | "learning" | "review">(
+    "vocabulary",
+  );
+  const [reviewQueue, setReviewQueue] = useState<SenseWithWord[]>([]);
+
+  // 3. Data Fetching: Request words from the FastAPI backend service, including search
   const fetchWords = useCallback(async (searchQuery: string = "") => {
     try {
       setLoading(true);
@@ -33,10 +41,16 @@ export default function Home() {
     }
   }, []);
 
-  // 3. Effect Hook: Trigger fetch whenever searchTerm changes (already debounced by component)
+  // 4. Effect Hook: Trigger fetch whenever searchTerm changes (already debounced by component)
   useEffect(() => {
     fetchWords(searchTerm);
   }, [searchTerm, fetchWords]);
+
+  // 5. Review Handler: sets the review queue and transitions to the Review Area
+  function handleStartReview(selected: SenseWithWord[]): void {
+    setReviewQueue(selected);
+    setArea("review");
+  }
 
   return (
     <main className="min-h-screen bg-forest-50 dark:bg-forest-900 p-8">
@@ -94,30 +108,58 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Integrated Search Bar */}
-        <div className="mb-6">
-          <SearchBar
-            onSearch={setSearchTerm}
-            placeholder="Search by word or translation..."
-          />
-        </div>
+        {/* Search Bar — Vocabulary Area only */}
+        {area === "vocabulary" && (
+          <div className="mb-6">
+            <SearchBar
+              onSearch={setSearchTerm}
+              placeholder="Search by word or translation..."
+            />
+          </div>
+        )}
+
+        {/* Area Toggle — hidden in Review Area */}
+        {area !== "review" && (
+          <div className="mb-4">
+            <AreaToggle
+              area={area}
+              onAreaChange={(newArea) => setArea(newArea)}
+            />
+          </div>
+        )}
 
         {/* Content Section */}
-        <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
-          {loading ? (
-            <p className="text-center py-10 text-forest-600 dark:text-forest-300">
-              Loading your vocabulary...
-            </p>
-          ) : words.length === 0 ? (
+        {area === "vocabulary" && (
+          <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
+            {loading ? (
+              <p className="text-center py-10 text-forest-600 dark:text-forest-300">
+                Loading your vocabulary...
+              </p>
+            ) : words.length === 0 ? (
+              <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
+                No words found. Time to add your first one!
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <WordTable words={words} onRefresh={fetchWords} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {area === "learning" && (
+          <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
+            <SensesTable onStartReview={handleStartReview} />
+          </div>
+        )}
+
+        {area === "review" && (
+          <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
             <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
-              No words found. Time to add your first one!
+              Review Area coming soon ({reviewQueue.length} senses queued).
             </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <WordTable words={words} onRefresh={fetchWords} />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );
