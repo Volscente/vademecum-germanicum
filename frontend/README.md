@@ -9,7 +9,8 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **`src/app/page.tsx`** — Root page; owns all state (words list, search term, loading flag, active area, review queue), fetches from the backend, and passes handlers down to child components
 - **`src/components/AreaToggle.tsx`** — Pill-style toggle switch between the Vocabulary Area and the Learning Area; hidden when the Review Area is active
 - **`src/components/SensesTable.tsx`** — Senses table for the Learning Area; fetches all senses via `getSenses()`, renders per-row To Review badges via `toReview()`, maintains local multi-select state, and fires `onStartReview` with the selected senses
-- **`src/components/ReviewArea.tsx`** — Full-canvas review session container; renders `SenseCard` for the current sense in the queue; displays a read-only "1 / N senses" progress counter; shows an empty-queue fallback
+- **`src/components/ReviewArea.tsx`** — Full-canvas review session container; owns `currentIndex` and `isTransitioning` state; fires `updateSenseReview` on difficulty selection then advances the card with a 150 ms opacity + `translate-x` CSS transition; renders `ReviewCompleteScreen` when the queue is exhausted; shows an empty-queue fallback
+- **`src/components/ReviewCompleteScreen.tsx`** — Session-end screen rendered when all cards in the review queue have been rated; two buttons to navigate back to the Vocabulary Area or Learning Area via `onNavigate`
 - **`src/components/SenseCard.tsx`** — Flashcard display for a single sense; three collapsible sections (Word Information, Verb Morphology, Sense Information); Verb Morphology rendered only when `category === "verb"`; four Difficulty Level buttons (Easy / Medium / Hard / Very Hard)
 - **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields
 - **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable
@@ -24,7 +25,8 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Public interfaces
 
-- `<ReviewArea reviewQueue onNavigate>` — review session container; `reviewQueue: SenseWithWord[]`, `onNavigate: (area: "vocabulary" | "learning") => void`
+- `<ReviewArea reviewQueue onNavigate>` — review session container; `reviewQueue: SenseWithWord[]`, `onNavigate: (area: "vocabulary" | "learning") => void`; manages card progression and transition animation internally
+- `<ReviewCompleteScreen onNavigate>` — completion screen; `onNavigate: (area: "vocabulary" | "learning") => void`; rendered by `ReviewArea` after the last card is rated
 - `<SenseCard sense onDifficultySelect>` — sense flashcard; `onDifficultySelect: (level: "Easy" | "Medium" | "Hard" | "VeryHard") => void`
 - `<AreaToggle area onAreaChange>` — pill toggle between `"vocabulary"` and `"learning"`; not rendered when `area === "review"`
 - `<SensesTable onStartReview>` — senses table with multi-select checkboxes and "Start Review" button; calls `onStartReview(selected: SenseWithWord[])` to hand off the review queue
@@ -70,6 +72,11 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-05-23 (v0.4.3)
+
+- Added `ReviewCompleteScreen.tsx`: session-end screen with "Return to Vocabulary Area" and "Return to Learning Area" buttons wired to `onNavigate`.
+- Updated `ReviewArea.tsx`: added `currentIndex` and `isTransitioning` state; wired `onDifficultySelect` to `updateSenseReview` (fire-and-forget) + 150 ms opacity/`translate-x` transition; progress counter now reflects `currentIndex + 1`; renders `ReviewCompleteScreen` when `currentIndex >= reviewQueue.length`; `onNavigate` is now destructured and used.
 
 ### 2026-05-23 (v0.4.2)
 
