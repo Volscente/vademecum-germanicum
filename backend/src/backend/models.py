@@ -55,6 +55,17 @@ class RegisterEnum(str, enum.Enum):
     technical = "Technical"
 
 
+class DifficultyLevelEnum(str, enum.Enum):
+    """
+    Self-assessed difficulty level assigned during a review session.
+    """
+
+    Easy = "Easy"
+    Medium = "Medium"
+    Hard = "Hard"
+    VeryHard = "VeryHard"
+
+
 class ExampleSentence(Base):
     """
     A German example sentence with its English translation, belonging to a Sense.
@@ -98,6 +109,10 @@ class Sense(Base):
     word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
     meaning_summary = Column(String, nullable=False)
     register = Column(Enum(RegisterEnum), nullable=False)
+    difficulty_level = Column(
+        Enum(DifficultyLevelEnum), nullable=False, default=DifficultyLevelEnum.Medium
+    )
+    last_reviewed_at = Column(DateTime, nullable=True)
 
     word = relationship("Word", back_populates="senses")
     grammar_patterns = relationship(

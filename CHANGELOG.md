@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-05-23
+
+### Added
+
+- **Backend**: `DifficultyLevelEnum` (`Easy`, `Medium`, `Hard`, `VeryHard`) in `models.py` following the same pattern as `GenderEnum` / `CategoryEnum`.
+- **Backend**: `difficulty_level` (default `"Medium"`) and `last_reviewed_at` (nullable `TIMESTAMP`) columns on the `Sense` ORM model.
+- **Backend**: `SenseReviewUpdate` Pydantic request schema and `SenseWithWordRead` response schema embedding parent word fields (`word`, `translation`, `gender`, `category`).
+- **Backend**: `GET /senses/` endpoint returning a flat list of all senses with parent word fields embedded, using `selectinload` to avoid N+1 queries.
+- **Backend**: `PUT /senses/{sense_id}/review` endpoint that validates `difficulty_level` against `DifficultyLevelEnum`, sets `last_reviewed_at = datetime.now(timezone.utc)`, and returns the updated `SenseRead`.
+- **Infrastructure**: `migrations/add_sense_review_columns.sql` — idempotent `ALTER TABLE` script (`IF NOT EXISTS`) for adding the two new columns to the live `senses` table.
+- **Infrastructure**: `run_migration` recipe in `justfile` for applying the SQL migration against the running PostgreSQL container (`just run_backend_recreate` first, then `just run_migration`).
+- **Frontend**: `difficulty_level` and `last_reviewed_at` optional fields added to the `Sense` interface in `word.ts`.
+- **Frontend**: New `SenseWithWord` interface in `word.ts` extending `Sense` with `word`, `translation`, `gender`, and `category` from the parent word.
+- **Frontend**: New `reviewUtils.ts` module with `REVIEW_THRESHOLDS` constant and `toReview(sense: SenseWithWord): boolean` utility for computing the "To Review" badge.
+- **Frontend**: `getSenses()` and `updateSenseReview()` API functions in `api.ts`.
+- **Tests**: New `test_senses.py` suite covering `GET /senses/` response shape, `PUT /senses/{id}/review` success (200 + non-null timestamp + correct difficulty), invalid difficulty (422), and non-existent sense (404).
+
 ## [0.3.5] - 2026-05-10
 
 ### Added
