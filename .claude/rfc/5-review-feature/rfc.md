@@ -122,14 +122,14 @@ Clicking a Difficulty Level button fires `updateSenseReview(senseId, difficultyL
 
 ## Effort Estimations {#effort-estimations}
 
-Total estimated effort: **{N} sessions**.
+Total estimated effort: **5.0 sessions**.
 
 | Milestone | Description | Est. effort | GitHub Issue |
 | :-------- | :---------- | :---------- | :----------- |
-| M1 — Database schema updates and badge logic | New Sense columns, SQL migration script, backend endpoints (`GET /senses/`, `PUT /senses/{id}/review`), frontend types and API utilities, `reviewUtils.ts` | {N} | #{issue} |
-| M2 — Learning Area UI | `AreaToggle`, `SensesTable`, multi-select state, Review Cart trigger | {N} | #{issue} |
-| M3 — Review Area UI | `ReviewArea`, `SenseCard` with collapsible/conditional sections, Difficulty buttons | {N} | #{issue} |
-| M4 — Review workflow | Card transitions, `updateSenseReview` calls, `ReviewCompleteScreen` and area routing | {N} | #{issue} |
+| M1 — Database schema updates and badge logic | New Sense columns, SQL migration script, backend endpoints (`GET /senses/`, `PUT /senses/{id}/review`), frontend types and API utilities, `reviewUtils.ts` | 1.5 | #55 |
+| M2 — Learning Area UI | `AreaToggle`, `SensesTable`, multi-select state, Review Cart trigger | 1.0 | #56 |
+| M3 — Review Area UI | `ReviewArea`, `SenseCard` with collapsible/conditional sections, Difficulty buttons | 1.5 | #57 |
+| M4 — Review workflow | Card transitions, `updateSenseReview` calls, `ReviewCompleteScreen` and area routing | 1.0 | #58 |
 
 ### Recommended Order
 
