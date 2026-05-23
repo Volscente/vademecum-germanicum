@@ -12,9 +12,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
 - **`src/components/SearchBar.tsx`** — Debounced search input (300 ms default) that fires an `onSearch` callback when the user pauses typing
 - **`src/components/ThemeToggle.tsx`** — Toggles light/dark mode by manipulating the `dark` CSS class on `<html>` and persisting the choice in `localStorage`
-- **`src/lib/api.ts`** — HTTP client; exposes `enrichWord` (`POST /words/enrich`) and `updateWord` (`PUT /words/{id}`)
+- **`src/lib/api.ts`** — HTTP client; exposes `enrichWord`, `updateWord`, `getSenses`, and `updateSenseReview`
 - **`src/lib/wordSchema.ts`** — Zod schemas (`grammarPatternSchema`, `exampleSentenceSchema`, `senseSchema`, `wordSchema`) and derived type (`WordFormValues`) used by both modals for form validation
-- **`src/types/word.ts`** — TypeScript interfaces (`Word`, `WordEnrichment`, `Sense`, `GrammarPattern`, `ExampleSentence`) that mirror the FastAPI backend schemas
+- **`src/lib/reviewUtils.ts`** — `REVIEW_THRESHOLDS` constant and `toReview(sense)` utility for computing the "To Review" badge
+- **`src/types/word.ts`** — TypeScript interfaces (`Word`, `WordEnrichment`, `Sense`, `SenseWithWord`, `GrammarPattern`, `ExampleSentence`) that mirror the FastAPI backend schemas
 - **`src/app/globals.css`** — Tailwind v4 theme configuration defining the custom `forest-*` green palette and class-based dark mode
 
 ## Public interfaces
@@ -26,11 +27,14 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - `<ThemeToggle />` — self-contained dark/light mode toggle; no props
 - `enrichWord(word: string): Promise<WordEnrichment>` — calls `POST /words/enrich` and returns AI-generated sense-based word metadata
 - `updateWord(wordId: number, data: WordFormValues): Promise<Word>` — calls `PUT /words/{id}` and returns the updated word with full sense graph
+- `getSenses(): Promise<SenseWithWord[]>` — calls `GET /senses/` and returns all senses with parent word fields embedded
+- `updateSenseReview(senseId, difficultyLevel): Promise<Sense>` — calls `PUT /senses/{id}/review` to persist a difficulty rating and stamp `last_reviewed_at`
+- `toReview(sense: SenseWithWord): boolean` — returns `true` if the sense is due for review based on `REVIEW_THRESHOLDS` and `last_reviewed_at`
 - `wordSchema` — Zod schema for word creation/editing form validation (includes nested `senseSchema`, `grammarPatternSchema`, `exampleSentenceSchema`)
 - `WordFormValues` — TypeScript type inferred from `wordSchema`
 - `Word` — interface matching `WordRead` from the FastAPI backend (includes `senses: Sense[]`)
 - `WordEnrichment` — interface matching the enrichment response (includes `senses: Sense[]`)
-- `Sense`, `GrammarPattern`, `ExampleSentence` — interfaces for the nested sense graph
+- `Sense`, `SenseWithWord`, `GrammarPattern`, `ExampleSentence` — interfaces for the nested sense graph and the review-enriched sense shape
 
 ## External dependencies
 
@@ -58,6 +62,12 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-05-23 (v0.4.0)
+
+- Updated `word.ts`: extended `Sense` with optional `difficulty_level` and `last_reviewed_at` fields; added `SenseWithWord` interface embedding parent word fields (`word`, `translation`, `gender`, `category`).
+- Added `reviewUtils.ts`: `REVIEW_THRESHOLDS` constant (`Easy: 7d`, `Medium: 3d`, `Hard: 1d`, `VeryHard: 0d`) and `toReview(sense)` utility.
+- Updated `api.ts`: added `getSenses()` (`GET /senses/`) and `updateSenseReview(senseId, difficultyLevel)` (`PUT /senses/{id}/review`).
 
 ### 2026-05-10 (v0.3.5)
 
