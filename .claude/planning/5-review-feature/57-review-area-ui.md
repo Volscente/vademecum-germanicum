@@ -60,11 +60,11 @@ Sections use the exact CSS-only toggle already established in `EditWordModal.tsx
 ```tsx
 className={clsx(
   "overflow-hidden transition-[max-height] duration-300",
-  collapsed ? "max-h-0" : "max-h-500",
+  collapsed ? "max-h-0" : "max-h-[500px]",
 )}
 ```
 
-No JS height measurement. Fields remain mounted in both states (same reason as `EditWordModal`: no need to re-mount on toggle).
+The section body also receives `overflow-y-auto` so that content taller than 500 px is scrollable rather than silently clipped. No JS height measurement. Fields remain mounted in both states (same reason as `EditWordModal`: no need to re-mount on toggle).
 
 ### Conditional Verb Morphology
 
@@ -84,6 +84,9 @@ No new packages required. All dependencies (`lucide-react`, `clsx`, Tailwind CSS
 
 | File | Action | Description |
 | ---- | ------ | ----------- |
+| `backend/src/backend/schemas.py` | Modify | Add `word_plural`, `auxiliary_verb`, `principal_forms` to `SenseWithWordRead` |
+| `backend/src/backend/main.py` | Modify | Pass the three new fields when constructing `SenseWithWordRead` in `read_senses` |
+| `frontend/src/types/word.ts` | Modify | Add `word_plural`, `auxiliary_verb`, `principal_forms` to `SenseWithWord` |
 | `frontend/src/components/ReviewArea.tsx` | Create | Container for the review session; renders `SenseCard` for the current sense; placeholder for `ReviewCompleteScreen` (TASK-4) |
 | `frontend/src/components/SenseCard.tsx` | Create | Collapsible sense card with three sections, conditional Verb Morphology, and four Difficulty Level buttons |
 | `frontend/src/app/page.tsx` | Modify | Replace `area === "review"` placeholder with `<ReviewArea reviewQueue={reviewQueue} onNavigate={setArea} />` |
@@ -104,6 +107,7 @@ interface ReviewAreaProps {
 - Renders nothing meaningful when `reviewQueue` is empty (guard: show a "No senses selected" fallback).
 - In TASK-3: `currentIndex` is fixed at `0` — renders `reviewQueue[0]`. TASK-4 adds the state and advancement logic.
 - Passes a stubbed `onDifficultySelect` to `SenseCard` (e.g. `() => {}`); TASK-4 replaces the stub with the real handler.
+- Displays a read-only progress counter: `"1 / {reviewQueue.length} senses"` (hardcoded to 1 in TASK-3; TASK-4 makes it dynamic via `currentIndex + 1`).
 
 **`SenseCard` component props interface:**
 
@@ -147,10 +151,43 @@ Note: `ReviewArea` owns its own card/layout wrapper — drop the outer `<div>` w
 
 ### Data Models / Schemas
 
-No new data models. `SenseWithWord` (already in `frontend/src/types/word.ts`) is the sole data contract:
+`SenseWithWord` (frontend) and `SenseWithWordRead` (backend) must be extended to carry the three verb/plural fields that the Word Information and Verb Morphology sections need.
+
+**Backend — `backend/src/backend/schemas.py`:**
+
+```python
+# Before:
+class SenseWithWordRead(SenseRead):
+    word: str
+    translation: str
+    gender: Optional[GenderEnum] = None
+    category: Optional[CategoryEnum] = None
+
+# After:
+class SenseWithWordRead(SenseRead):
+    word: str
+    translation: str
+    gender: Optional[GenderEnum] = None
+    category: Optional[CategoryEnum] = None
+    word_plural: Optional[str] = None
+    auxiliary_verb: Optional[str] = None
+    principal_forms: Optional[list[str]] = None
+```
+
+**Backend — `backend/src/backend/main.py` (`read_senses` constructor):**
+
+Add three new kwargs to the existing `SenseWithWordRead(...)` call:
+
+```python
+word_plural=sense.word.word_plural,
+auxiliary_verb=sense.word.auxiliary_verb,
+principal_forms=sense.word.principal_forms,
+```
+
+**Frontend — `frontend/src/types/word.ts`:**
 
 ```ts
-// Existing — do not modify in this task
+// Before:
 export interface SenseWithWord extends Sense {
   word: string;
   translation: string;
@@ -158,19 +195,19 @@ export interface SenseWithWord extends Sense {
   category?: string;
 }
 
-// Sense (parent) — existing fields relevant to SenseCard:
-export interface Sense {
-  id?: number;
-  meaning_summary: string;
-  register: "Formal" | "Colloquial" | "Neutral" | "Technical";
-  difficulty_level?: "Easy" | "Medium" | "Hard" | "VeryHard";
-  last_reviewed_at?: string | null;
-  grammar_patterns: GrammarPattern[];
-  example_sentences: ExampleSentence[];
+// After:
+export interface SenseWithWord extends Sense {
+  word: string;
+  translation: string;
+  gender?: string;
+  category?: string;
+  word_plural?: string | null;
+  auxiliary_verb?: string | null;
+  principal_forms?: string[] | null;
 }
 ```
 
-**Known gap (see Open Questions):** `SenseWithWord` does not include `word_plural`, `auxiliary_verb`, or `principal_forms`. The Word Information and Verb Morphology sections of `SenseCard` cannot display these fields with the current interface. Resolve before implementing `SenseCard` — either extend the backend `SenseWithWordRead` schema and update `SenseWithWord`, or explicitly accept that these fields are omitted in v1.
+No migration or DB schema change is required — these columns already exist on the `Word` model; `SenseWithWordRead` simply wasn't forwarding them.
 
 ---
 
@@ -190,14 +227,14 @@ export interface Sense {
 
 - `reviewQueue` with a single sense → card renders; no crash on mount
 - Sense with empty `grammar_patterns` or `example_sentences` arrays → Sense Information section shows gracefully (empty lists, no JS error)
-- Very long `meaning_summary` or many example sentences → `max-h-500` cap may clip content; verify `overflow-y-auto` on the section body if needed
+- Very long `meaning_summary` or many example sentences → section body has `overflow-y-auto`; verify content is scrollable and not clipped
 - `category` value not equal to `"verb"` (noun, adjective, adverb, pronoun) → Verb Morphology section absent in all cases
 
 ---
 
 ### Open Questions / Risks
 
-- [ ] **`SenseWithWord` missing verb morphology fields:** `word_plural`, `auxiliary_verb`, `principal_forms` are absent from the current `SenseWithWord` interface and `SenseWithWordRead` backend schema. The Verb Morphology section (auxiliary verb + principal forms) and Word Information plural field cannot be rendered without extending the schema. Decide before coding `SenseCard`: extend `SenseWithWordRead` (backend + frontend types) or explicitly omit these fields from the card. **Target:** before TASK-3 implementation starts
-- [ ] **Difficulty button icons:** The four `lucide-react` icons to use for Easy / Medium / Hard / Very Hard are unspecified. Candidates: `ThumbsUp` / `Minus` / `TrendingDown` / `ThumbsDown` or styled text badges only. Decide at implementation time. **Target:** during TASK-3 implementation
-- [ ] **Progress indicator:** Whether to display a "2 / 7 senses" counter in `ReviewArea` for TASK-3 (display only, no state) or defer to TASK-4 alongside the full navigation logic. **Target:** before TASK-3 implementation starts
-- [ ] **`max-h-500` clipping:** The fixed `max-h-500` Tailwind class used in `EditWordModal` may clip `SenseCard` sections with many grammar patterns or example sentences. Evaluate during manual testing; add `overflow-y-auto` to the section body if content overflows. **Target:** during TASK-3 manual testing
+- [x] **`SenseWithWord` missing verb morphology fields:** Resolved — extend `SenseWithWordRead` (backend) and `SenseWithWord` (frontend) with `word_plural`, `auxiliary_verb`, `principal_forms`. See Data Models / Schemas for exact diffs. No DB migration needed.
+- [x] **Difficulty button icons:** Resolved — `ThumbsUp` (Easy) / `Minus` (Medium) / `TrendingDown` (Hard) / `ThumbsDown` (Very Hard) from `lucide-react`.
+- [x] **Progress indicator:** Resolved — display `"1 / N senses"` in `ReviewArea` as a read-only counter hardcoded to 1 in TASK-3; TASK-4 makes it dynamic.
+- [x] **`max-h-500` clipping:** Resolved — section bodies receive `overflow-y-auto` so tall content is scrollable rather than clipped.
