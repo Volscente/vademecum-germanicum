@@ -7,8 +7,8 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 ## Key components
 
 - **`src/backend/main.py`** — FastAPI app entry point; defines all routes, CORS middleware, and creates DB tables on startup
-- **`src/backend/models.py`** — SQLAlchemy ORM models: `Word`, `Sense`, `GrammarPattern`, `ExampleSentence`; plus enumerations `GenderEnum`, `CategoryEnum`, `CaseEnum`, `RegisterEnum`
-- **`src/backend/schemas.py`** — Pydantic schemas for request/response validation: `WordCreate`, `WordRead`, `WordUpdate`, `SenseCreate`, `SenseRead`, `GrammarPatternCreate/Read`, `ExampleSentenceCreate/Read`, `WordEnrichRequest`
+- **`src/backend/models.py`** — SQLAlchemy ORM models: `Word`, `Sense`, `GrammarPattern`, `ExampleSentence`; plus enumerations `GenderEnum`, `CategoryEnum`, `CaseEnum`, `RegisterEnum`, `DifficultyLevelEnum`
+- **`src/backend/schemas.py`** — Pydantic schemas for request/response validation: `WordCreate`, `WordRead`, `WordUpdate`, `SenseCreate`, `SenseRead`, `SenseWithWordRead`, `SenseReviewUpdate`, `GrammarPatternCreate/Read`, `ExampleSentenceCreate/Read`, `WordEnrichRequest`
 - **`src/backend/database.py`** — SQLAlchemy engine and session factory; exposes `get_db` FastAPI dependency
 - **`src/backend/enrichment.py`** — LLM enrichment logic; defines `WordEnrichment` output model and `enrich_word` async function using PydanticAI with Google Gemini
 
@@ -22,6 +22,8 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - `GET /words/?skip&limit&search` — lists words with optional case-insensitive search on `word` and `translation`; each word embeds its full sense graph
 - `PUT /words/{word_id}` — partially updates a word; accepts `WordUpdate` (all fields optional, including `senses`); when `senses` is provided it replaces the existing sense list; returns `WordRead`
 - `DELETE /words/{word_id}` — removes a word and all its senses (cascade); returns HTTP 204
+- `GET /senses/` — returns all senses with parent word fields embedded (`word`, `translation`, `gender`, `category`); response schema `SenseWithWordRead`
+- `PUT /senses/{sense_id}/review` — accepts `SenseReviewUpdate` (`difficulty_level`), stamps `last_reviewed_at` server-side, returns `SenseRead`
 
 **Python-level:**
 
@@ -47,7 +49,9 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - Every `WordCreate` must include at least one `Sense`; every `Sense` must include at least one `GrammarPattern` and at least one `ExampleSentence` — enforced at the Pydantic layer (HTTP 422 on violation).
 - `GrammarPattern.preposition` is nullable — `null` explicitly means "no preposition required".
 - The enrichment agent is instantiated per-request (no singleton); this is intentional to pick up env var changes without a restart, but adds per-call overhead.
-- DB tables are created at import time via `models.Base.metadata.create_all`; schema migrations are not managed (no Alembic). Breaking schema changes require a manual SQL migration script.
+- DB tables are created at import time via `models.Base.metadata.create_all`; schema migrations are not managed (no Alembic). Breaking schema changes require a manual SQL migration script (see `migrations/` and `just run_migration`).
+- `difficulty_level` defaults to `"Medium"` for all new senses; `last_reviewed_at` starts `NULL`. Both are set/stamped server-side only — never trusted from the client.
+- `last_reviewed_at` is always written using `datetime.now(timezone.utc)`; `datetime.utcnow()` is deprecated and must not be used.
 
 ## Out of scope
 
@@ -57,6 +61,14 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - **Pagination defaults** — the `GET /words/` endpoint defaults to `limit=100`; the frontend overrides this to 10 for the unfiltered view
 
 ## Changelog
+
+### 2026-05-23 (v0.4.0)
+
+- `DifficultyLevelEnum` (`Easy`, `Medium`, `Hard`, `VeryHard`) added to `models.py`.
+- `difficulty_level` (default `"Medium"`) and `last_reviewed_at` (nullable `TIMESTAMP`) added to the `Sense` ORM model.
+- `SenseReviewUpdate` and `SenseWithWordRead` schemas added to `schemas.py`; `SenseRead` extended with the two new fields.
+- `GET /senses/` and `PUT /senses/{sense_id}/review` endpoints implemented in `main.py`.
+- `migrations/add_sense_review_columns.sql` — idempotent `ALTER TABLE` script; apply with `just run_migration`.
 
 ### 2026-05-09 (v0.3.1)
 
