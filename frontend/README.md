@@ -9,6 +9,8 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **`src/app/page.tsx`** — Root page; owns all state (words list, search term, loading flag, active area, review queue), fetches from the backend, and passes handlers down to child components
 - **`src/components/AreaToggle.tsx`** — Pill-style toggle switch between the Vocabulary Area and the Learning Area; hidden when the Review Area is active
 - **`src/components/SensesTable.tsx`** — Senses table for the Learning Area; fetches all senses via `getSenses()`, renders per-row To Review badges via `toReview()`, maintains local multi-select state, and fires `onStartReview` with the selected senses
+- **`src/components/ReviewArea.tsx`** — Full-canvas review session container; renders `SenseCard` for the current sense in the queue; displays a read-only "1 / N senses" progress counter; shows an empty-queue fallback
+- **`src/components/SenseCard.tsx`** — Flashcard display for a single sense; three collapsible sections (Word Information, Verb Morphology, Sense Information); Verb Morphology rendered only when `category === "verb"`; four Difficulty Level buttons (Easy / Medium / Hard / Very Hard)
 - **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields
 - **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
@@ -22,6 +24,8 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Public interfaces
 
+- `<ReviewArea reviewQueue onNavigate>` — review session container; `reviewQueue: SenseWithWord[]`, `onNavigate: (area: "vocabulary" | "learning") => void`
+- `<SenseCard sense onDifficultySelect>` — sense flashcard; `onDifficultySelect: (level: "Easy" | "Medium" | "Hard" | "VeryHard") => void`
 - `<AreaToggle area onAreaChange>` — pill toggle between `"vocabulary"` and `"learning"`; not rendered when `area === "review"`
 - `<SensesTable onStartReview>` — senses table with multi-select checkboxes and "Start Review" button; calls `onStartReview(selected: SenseWithWord[])` to hand off the review queue
 - `<AddWordModal onWordAdded>` — button + modal to create a word; calls `onWordAdded()` after a successful save
@@ -38,7 +42,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - `WordFormValues` — TypeScript type inferred from `wordSchema`
 - `Word` — interface matching `WordRead` from the FastAPI backend (includes `senses: Sense[]`)
 - `WordEnrichment` — interface matching the enrichment response (includes `senses: Sense[]`)
-- `Sense`, `SenseWithWord`, `GrammarPattern`, `ExampleSentence` — interfaces for the nested sense graph and the review-enriched sense shape
+- `Sense`, `SenseWithWord`, `GrammarPattern`, `ExampleSentence` — interfaces for the nested sense graph and the review-enriched sense shape; `SenseWithWord` includes `word_plural`, `auxiliary_verb`, `principal_forms` from the parent word
 
 ## External dependencies
 
@@ -66,6 +70,13 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-05-23 (v0.4.2)
+
+- Added `ReviewArea.tsx`: full-canvas review session container rendering `SenseCard` for the first queue item; "1 / N senses" read-only progress counter; empty-queue fallback.
+- Added `SenseCard.tsx`: three collapsible sections (Word Information, Verb Morphology, Sense Information) with `max-h` CSS toggle and `overflow-y-auto`; Verb Morphology omitted entirely when `category !== "verb"`; four Difficulty Level buttons using `ThumbsUp` / `Minus` / `TrendingDown` / `ThumbsDown` lucide-react icons.
+- Updated `word.ts`: added `word_plural`, `auxiliary_verb`, `principal_forms` optional fields to `SenseWithWord`.
+- Updated `page.tsx`: replaced `area === "review"` placeholder with `<ReviewArea …/>`; added `ReviewArea` import.
 
 ### 2026-05-23 (v0.4.1)
 

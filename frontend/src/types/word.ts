@@ -25,6 +25,9 @@ export interface SenseWithWord extends Sense {
   translation: string;
   gender?: string;
   category?: string;
+  word_plural?: string | null;
+  auxiliary_verb?: string | null;
+  principal_forms?: string[] | null;
 }
 
 /**

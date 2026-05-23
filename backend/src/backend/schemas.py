@@ -60,6 +60,9 @@ class SenseWithWordRead(SenseRead):
     translation: str
     gender: Optional[GenderEnum] = None
     category: Optional[CategoryEnum] = None
+    word_plural: Optional[str] = None
+    auxiliary_verb: Optional[str] = None
+    principal_forms: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
 

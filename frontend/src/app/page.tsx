@@ -2,6 +2,7 @@
 
 import AddWordModal from "@/components/AddWordModal";
 import AreaToggle from "@/components/AreaToggle";
+import ReviewArea from "@/components/ReviewArea";
 import SearchBar from "@/components/SearchBar";
 import SensesTable from "@/components/SensesTable";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -154,11 +155,10 @@ export default function Home() {
         )}
 
         {area === "review" && (
-          <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
-            <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
-              Review Area coming soon ({reviewQueue.length} senses queued).
-            </p>
-          </div>
+          <ReviewArea
+            reviewQueue={reviewQueue}
+            onNavigate={(target) => setArea(target)}
+          />
         )}
       </div>
     </main>

@@ -96,6 +96,9 @@ def read_senses(db: Session = Depends(get_db)) -> list[schemas.SenseWithWordRead
             translation=sense.word.translation,
             gender=sense.word.gender,
             category=sense.word.category,
+            word_plural=sense.word.word_plural,
+            auxiliary_verb=sense.word.auxiliary_verb,
+            principal_forms=sense.word.principal_forms,
         )
         for sense in senses
     ]
