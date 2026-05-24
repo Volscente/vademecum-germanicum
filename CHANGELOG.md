@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-05-24
+
+### Fixed
+
+- **Tests**: `db_session` fixture now overrides `app.dependency_overrides[get_db]` so TestClient HTTP requests use the same SQLAlchemy session as the test. A `begin_nested()` SAVEPOINT prevents route-level `commit()` calls from committing the outer transaction; an `after_transaction_end` event listener restarts the SAVEPOINT after each release. The outer transaction is rolled back in `finally`, ensuring no test data reaches the production database.
+
 ## [0.4.3] - 2026-05-23
 
 ### Added
