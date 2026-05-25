@@ -3,7 +3,7 @@
 import { getSenses } from "@/lib/api";
 import { toReview } from "@/lib/reviewUtils";
 import { SenseWithWord } from "@/types/word";
-import { BookMarked, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { BarChart2, BookMarked, BookOpen, ChevronDown, ChevronUp, ChevronsUpDown, Clock, Globe, Languages, Tag } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 type SortKey = "word" | "meaning" | "translation" | "category" | "difficulty" | "last_reviewed";
@@ -105,25 +105,25 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
             <tr>
               <th className="py-3.5 pl-4 pr-3 w-10" />
               <th onClick={() => handleSort("word")} className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Word <SortIcon col="word" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><Languages className="w-4 h-4" /> Word <SortIcon col="word" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th onClick={() => handleSort("meaning")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Sense <SortIcon col="meaning" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><BookOpen className="w-4 h-4" /> Sense <SortIcon col="meaning" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th onClick={() => handleSort("translation")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Translation <SortIcon col="translation" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><Globe className="w-4 h-4" /> Translation <SortIcon col="translation" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th onClick={() => handleSort("category")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Category <SortIcon col="category" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><Tag className="w-4 h-4" /> Category <SortIcon col="category" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th onClick={() => handleSort("difficulty")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Difficulty <SortIcon col="difficulty" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><BarChart2 className="w-4 h-4" /> Difficulty <SortIcon col="difficulty" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th onClick={() => handleSort("last_reviewed")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
-                <div className="flex items-center gap-1">Last Reviewed <SortIcon col="last_reviewed" sortKey={sortKey} sortDir={sortDir} /></div>
+                <div className="flex items-center gap-1"><Clock className="w-4 h-4" /> Last Reviewed <SortIcon col="last_reviewed" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                To Review
+                <div className="flex items-center gap-1"><BookMarked className="w-4 h-4" /> To Review</div>
               </th>
             </tr>
           </thead>
