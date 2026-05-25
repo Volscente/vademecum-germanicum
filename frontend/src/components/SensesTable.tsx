@@ -59,7 +59,7 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
 
   return (
     <div>
-      <div className="overflow-hidden shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
+      <div className="overflow-x-auto shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
         <table className="min-w-full divide-y divide-forest-200 dark:divide-forest-700">
           <thead className="bg-forest-50 dark:bg-forest-800">
             <tr>
@@ -120,7 +120,7 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
                     {sense.word}
                   </td>
                   <td
-                    className="px-3 py-3 text-sm text-forest-600 dark:text-forest-200 max-w-xs truncate"
+                    className="whitespace-nowrap px-3 py-3 text-sm text-forest-600 dark:text-forest-200"
                     title={sense.meaning_summary || undefined}
                   >
                     {sense.meaning_summary || '—'}
