@@ -24,32 +24,35 @@ The Word Form in the Word Table has now the “Delete Words”, “Cancel” and
 
 ## Approach direction
 
-No approach direction is given.
+Two complementary changes, both confined to `EditWordModal.tsx`:
+
+1. **Sticky action bar**: Restructure the modal's layout as a flex column — scrollable body for form fields, sticky footer pinned to the bottom containing the "Delete Word", "Cancel", and "Save Changes" buttons. The modal already uses `isOpen` / `onClose` / `onWordDeleted` / `onWordUpdated` props, so no interface changes are needed.
+
+2. **ESC key shortcut**: Add a `useEffect` inside `EditWordModal` that attaches a `keydown` listener when `isOpen === true` and calls `onClose` on `Escape`. The listener is cleaned up when the modal closes or the component unmounts.
 
 ## Success criteria
 
-- User can immediately access the buttons
-- User can close the Word Form through keyboard shortcut (e.g., ESC button)
+- The "Delete Word", "Cancel", and "Save Changes" buttons are always visible without scrolling, regardless of form length.
+- Pressing ESC while the modal is open closes it (equivalent to clicking "Cancel").
+- All existing behaviour — validation, save, delete, re-enrich, collapsible Verb Morphology and Sense cards — remains intact.
+- No backend changes required.
 
 ## Constraints
 
-<!-- Optional. Hard requirements the solution must satisfy.
-     Examples: SLA targets, banned technologies, budget caps, compliance rules.
-     Claude will not relax these when designing the approach. -->
+- Must not modify backend logic or API contracts.
+- Must preserve the existing `react-hook-form` + Zod validation pipeline (`wordSchema` as single source of truth).
+- Must not break the `onWordDeleted` and `onWordUpdated` callbacks consumed by `WordTable` and `page.tsx`.
 
 ## Desired tech
 
-<!-- Optional. Technologies you want to experiment with or strongly prefer.
-     Separate from the tech-stack YAML field (which lists the existing stack);
-     this is for new tools you want to try — include your reasoning if useful. -->
+No new dependencies. The solution uses only native browser APIs (`addEventListener`), existing Tailwind v4 utility classes (`sticky`, `bottom-0`, `flex`, `overflow-y-auto`), and React's `useEffect` hook — all already present in the project.
 
 ## Integration context
 
-<!-- Optional. How should the solution integrate with the current system?
-     E.g. "must reuse the existing auth middleware", "expose a REST endpoint consumed by the mobile app".
-     Used to shape integration subsections in the RFC. -->
+All changes are isolated to `frontend/src/components/EditWordModal.tsx`. The component's public interface (`word`, `isOpen`, `onClose`, `onWordDeleted`, `onWordUpdated`) does not change, so `page.tsx` and `WordTable.tsx` require no edits.
 
 ## Known risks / concerns
 
-<!-- Optional. Doubts about your approach or technical uncertainties.
-     Used to seed the Risks & Open Questions table in the RFC. -->
+- **Small-screen overlap**: A sticky footer reduces the visible form area on short viewports. Mitigate by ensuring the scrollable body has enough `min-height` and the footer has a clear visual separator (border or shadow).
+- **ESC conflicts**: If a nested element (e.g., a browser-native `<dialog>`) already handles ESC, adding a manual listener could double-fire. Since `EditWordModal` is a custom div-based modal (not `<dialog>`), this is unlikely but worth verifying during implementation.
+- **Focus trap**: ESC should close the modal only when focus is inside it; a global listener would also fire if the user presses ESC while focused elsewhere on the page. The `isOpen` guard partially mitigates this, but a more robust solution would check `document.activeElement` is within the modal.
