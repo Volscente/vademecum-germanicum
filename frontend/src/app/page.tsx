@@ -55,7 +55,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-forest-50 dark:bg-forest-900 p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex justify-between items-end mb-8">
           <div>
