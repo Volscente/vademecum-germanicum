@@ -100,6 +100,15 @@ export default function EditWordModal({
     });
   }, [senseFields.length]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   const watchedSenses = watch("senses") ?? [];
   const watchedCategory = watch("category");
 
@@ -187,8 +196,9 @@ export default function EditWordModal({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4 overflow-y-auto flex-1 pr-1"
+          className="flex flex-col flex-1 overflow-hidden"
         >
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1 pb-4">
           {/* German Word + Re-enrich */}
           <div>
             <label className={labelClass}>German Word</label>
@@ -491,9 +501,10 @@ export default function EditWordModal({
           {submitError && (
             <p className="text-red-500 text-sm">{submitError}</p>
           )}
+          </div>
 
           {/* Actions */}
-          <div className="flex justify-between items-center pt-2 shrink-0">
+          <div className="sticky bottom-0 border-t border-forest-200 dark:border-forest-600 bg-white dark:bg-forest-800 pt-4 flex justify-between items-center shrink-0">
             <button
               type="button"
               onClick={handleDelete}

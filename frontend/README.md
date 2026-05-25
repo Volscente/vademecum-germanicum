@@ -97,6 +97,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - Added `reviewUtils.ts`: `REVIEW_THRESHOLDS` constant (`Easy: 7d`, `Medium: 3d`, `Hard: 1d`, `VeryHard: 0d`) and `toReview(sense)` utility.
 - Updated `api.ts`: added `getSenses()` (`GET /senses/`) and `updateSenseReview(senseId, difficultyLevel)` (`PUT /senses/{id}/review`).
 
+### 2026-05-25 (v0.4.5)
+
+- Updated `EditWordModal.tsx`: action buttons ("Delete Word", "Cancel", "Save Changes") are now in a sticky footer (`sticky bottom-0`, `border-t`) outside the scrollable form body, so they remain visible regardless of scroll position. Added `useEffect` that attaches a `document` `keydown` listener when `isOpen === true` and calls `onClose()` on `Escape`; listener is removed on cleanup.
+
 ### 2026-05-10 (v0.3.5)
 
 - Updated `EditWordModal.tsx`: added a "Collapse All" button just above the Verb Morphology card. Clicking it sets `verbMorphologyCollapsed = true` and maps all `sensesCollapsed` entries to `true` via a `handleCollapseAll` handler, condensing the entire modal to summary headers in one action.
