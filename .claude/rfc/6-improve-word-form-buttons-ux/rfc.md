@@ -97,11 +97,11 @@ Restructure `EditWordModal.tsx` layout as `flex flex-col` with `max-h-[90vh]`. W
 
 ## Effort Estimations {#effort-estimations}
 
-Total estimated effort: **1 session**.
+Total estimated effort: **0.5 session**.
 
 | Milestone                          | Description                                                                              | Est. effort | GitHub Issue |
 | :--------------------------------- | :--------------------------------------------------------------------------------------- | :---------- | :----------- |
-| M1 — Sticky Footer & ESC Shortcut | Refactor modal layout to flex-column, extract sticky footer, add ESC keydown useEffect  | 1 session   | #{issue}     |
+| M1 — Sticky Footer & ESC Shortcut | Refactor modal layout to flex-column, extract sticky footer, add ESC keydown useEffect  | 0.5 session   | #67     |
 
 ### Recommended Order
 
