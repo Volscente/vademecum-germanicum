@@ -3,8 +3,18 @@
 import { getSenses } from "@/lib/api";
 import { toReview } from "@/lib/reviewUtils";
 import { SenseWithWord } from "@/types/word";
-import { BookMarked } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookMarked, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+type SortKey = "word" | "meaning" | "translation" | "category" | "difficulty" | "last_reviewed";
+type SortDir = "asc" | "desc";
+
+const DIFFICULTY_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2, VeryHard: 3 };
+
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey | null; sortDir: SortDir }) {
+  if (sortKey !== col) return <ChevronsUpDown className="w-3.5 h-3.5 opacity-40" />;
+  return sortDir === "asc" ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />;
+}
 
 interface SensesTableProps {
   onStartReview: (selected: SenseWithWord[]) => void;
@@ -13,9 +23,39 @@ interface SensesTableProps {
 export default function SensesTable({ onStartReview }: SensesTableProps) {
   const [senses, setSenses] = useState<SenseWithWord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSenseIds, setSelectedSenseIds] = useState<Set<number>>(
-    new Set(),
-  );
+  const [selectedSenseIds, setSelectedSenseIds] = useState<Set<number>>(new Set());
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return senses;
+    return [...senses].sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      if (sortKey === "word") return a.word.localeCompare(b.word) * dir;
+      if (sortKey === "meaning") return (a.meaning_summary ?? "").localeCompare(b.meaning_summary ?? "") * dir;
+      if (sortKey === "translation") return (a.translation ?? "").localeCompare(b.translation ?? "") * dir;
+      if (sortKey === "category") return (a.category ?? "").localeCompare(b.category ?? "") * dir;
+      if (sortKey === "difficulty") {
+        const av = DIFFICULTY_ORDER[a.difficulty_level ?? "Medium"] ?? 1;
+        const bv = DIFFICULTY_ORDER[b.difficulty_level ?? "Medium"] ?? 1;
+        return (av - bv) * dir;
+      }
+      // last_reviewed: nulls last
+      if (!a.last_reviewed_at && !b.last_reviewed_at) return 0;
+      if (!a.last_reviewed_at) return 1;
+      if (!b.last_reviewed_at) return -1;
+      return a.last_reviewed_at.localeCompare(b.last_reviewed_at) * dir;
+    });
+  }, [senses, sortKey, sortDir]);
 
   useEffect(() => {
     getSenses()
@@ -64,23 +104,23 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
           <thead className="bg-forest-50 dark:bg-forest-800">
             <tr>
               <th className="py-3.5 pl-4 pr-3 w-10" />
-              <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Word
+              <th onClick={() => handleSort("word")} className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Word <SortIcon col="word" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Sense
+              <th onClick={() => handleSort("meaning")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Sense <SortIcon col="meaning" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Translation
+              <th onClick={() => handleSort("translation")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Translation <SortIcon col="translation" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Category
+              <th onClick={() => handleSort("category")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Category <SortIcon col="category" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Difficulty
+              <th onClick={() => handleSort("difficulty")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Difficulty <SortIcon col="difficulty" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
-              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
-                Last Reviewed
+              <th onClick={() => handleSort("last_reviewed")} className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100 cursor-pointer select-none hover:text-forest-600 dark:hover:text-forest-300">
+                <div className="flex items-center gap-1">Last Reviewed <SortIcon col="last_reviewed" sortKey={sortKey} sortDir={sortDir} /></div>
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 To Review
@@ -88,7 +128,7 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-forest-100 dark:divide-forest-700 bg-white dark:bg-forest-900">
-            {senses.map((sense) => {
+            {sorted.map((sense) => {
               const id = sense.id!;
               const isSelected = selectedSenseIds.has(id);
               const needsReview = toReview(sense);
