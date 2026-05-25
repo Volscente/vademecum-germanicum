@@ -68,6 +68,9 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
                 Word
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
+                Sense
+              </th>
+              <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 Translation
               </th>
               <th className="px-3 py-3.5 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
@@ -115,6 +118,12 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
                   </td>
                   <td className="whitespace-nowrap py-3 pl-4 pr-3 text-sm font-bold text-forest-700 dark:text-forest-200">
                     {sense.word}
+                  </td>
+                  <td
+                    className="px-3 py-3 text-sm text-forest-600 dark:text-forest-200 max-w-xs truncate"
+                    title={sense.meaning_summary || undefined}
+                  >
+                    {sense.meaning_summary || '—'}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-sm text-forest-600 dark:text-forest-200">
                     {sense.translation}
