@@ -97,11 +97,11 @@ getSenses() → SenseWithWord[] → SensesTable (render only)
 
 ## Effort Estimations {#effort-estimations}
 
-Total estimated effort: **1 session**.
+Total estimated effort: **0.5 session**.
 
 | Milestone          | Description                                                       | Est. effort | GitHub Issue |
 | :----------------- | :---------------------------------------------------------------- | :---------- | :----------- |
-| M1 — Sense column  | Add "Sense" `<th>` and `<td>` to `SensesTable.tsx`; null fallback; CSS truncation | 1 session | #{issue} |
+| M1 — Sense column  | Add "Sense" `<th>` and `<td>` to `SensesTable.tsx`; null fallback; CSS truncation | 0.5 session | #71 |
 
 ### Recommended Order
 
