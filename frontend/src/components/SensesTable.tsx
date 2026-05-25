@@ -53,9 +53,10 @@ function SortIcon({
 
 interface SensesTableProps {
   onStartReview: (selected: SenseWithWord[]) => void;
+  searchTerm?: string;
 }
 
-export default function SensesTable({ onStartReview }: SensesTableProps) {
+export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTableProps) {
   const [senses, setSenses] = useState<SenseWithWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSenseIds, setSelectedSenseIds] = useState<Set<number>>(
@@ -74,8 +75,16 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
   };
 
   const sorted = useMemo(() => {
-    if (!sortKey) return senses;
-    return [...senses].sort((a, b) => {
+    const q = searchTerm.toLowerCase();
+    const filtered = q
+      ? senses.filter(
+          (s) =>
+            s.word.toLowerCase().includes(q) ||
+            (s.translation ?? "").toLowerCase().includes(q),
+        )
+      : senses;
+    if (!sortKey) return filtered;
+    return [...filtered].sort((a, b) => {
       const dir = sortDir === "asc" ? 1 : -1;
       if (sortKey === "word") return a.word.localeCompare(b.word) * dir;
       if (sortKey === "meaning")
@@ -97,7 +106,7 @@ export default function SensesTable({ onStartReview }: SensesTableProps) {
       if (!b.last_reviewed_at) return -1;
       return a.last_reviewed_at.localeCompare(b.last_reviewed_at) * dir;
     });
-  }, [senses, sortKey, sortDir]);
+  }, [senses, sortKey, sortDir, searchTerm]);
 
   useEffect(() => {
     getSenses()

@@ -137,8 +137,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Search Bar — Vocabulary Area only */}
-        {area === "vocabulary" && (
+        {/* Search Bar — Vocabulary and Learning Areas */}
+        {(area === "vocabulary" || area === "learning") && (
           <div className="mb-6">
             <SearchBar
               onSearch={setSearchTerm}
@@ -178,7 +178,7 @@ export default function Home() {
 
         {area === "learning" && (
           <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
-            <SensesTable onStartReview={handleStartReview} />
+            <SensesTable onStartReview={handleStartReview} searchTerm={searchTerm} />
           </div>
         )}
 
