@@ -129,7 +129,7 @@ A: Long values are capped with a Tailwind `max-w-xs truncate` combination on the
 
 **Q: Terminology?**
 
-A: 
+A:
 
 - **Sense** → a single meaning or usage of a German word (one word can have multiple senses).
 - **`meaning_summary`** → a short human-readable description of a sense, stored on the `Sense` model and returned in `SenseWithWord`.
