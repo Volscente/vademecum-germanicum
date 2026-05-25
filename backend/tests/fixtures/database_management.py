@@ -3,7 +3,9 @@ Database management fixtures.
 """
 
 import pytest
-from backend.database import SessionLocal
+from sqlalchemy import event
+from sqlalchemy.orm import Session
+from backend.database import engine, get_db
 from backend.main import app
 from fastapi.testclient import TestClient
 
@@ -17,15 +19,33 @@ def client():
 @pytest.fixture(scope="function", autouse=True)
 def db_session():
     """
-    Simulate the function backend/src/backend/database.get_db
-    by opening a clear rollback connection to the database.
+    Open a raw connection-level transaction, bind a Session to it, and add a
+    SAVEPOINT so that route-level commit() calls only release the SAVEPOINT
+    (not the outer connection transaction). Override get_db so every FastAPI
+    route in TestClient uses this same session. In teardown, session.close()
+    followed by trans.rollback() sends a real ROLLBACK to PostgreSQL,
+    discarding all test writes.
     """
-    connection = SessionLocal()
-    # Start a transaction
-    transaction = connection.begin()
+    connection = engine.connect()
+    trans = connection.begin()
+    session = Session(bind=connection)
+    nested = session.begin_nested()
+
+    @event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(sess, t):
+        nonlocal nested
+        if not nested.is_active:
+            nested = sess.begin_nested()
+
+    def override_get_db():
+        yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+
     try:
-        yield connection
+        yield session
     finally:
-        # Roll back everything done during the test
-        transaction.rollback()
+        app.dependency_overrides.pop(get_db, None)
+        session.close()
+        trans.rollback()
         connection.close()

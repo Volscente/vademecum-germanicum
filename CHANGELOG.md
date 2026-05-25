@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-05-25
+
+### Added
+
+- **Frontend**: `SensesTable` now renders a "Sense" column (between "Word" and "Translation") showing `meaning_summary` for each row; empty or blank values display `—`; long values are truncated at `max-w-xs` with the full text exposed via the `title` attribute on hover.
+
+## [0.4.5] - 2026-05-25
+
+### Changed
+
+- **Frontend**: `EditWordModal` action buttons ("Delete Word", "Cancel", "Save Changes") moved to a sticky footer that remains visible regardless of scroll position. Added ESC keyboard shortcut that closes the modal via a `document` `keydown` `useEffect`.
+
+## [0.4.4] - 2026-05-24
+
+### Fixed
+
+- **Tests**: `db_session` fixture now overrides `app.dependency_overrides[get_db]` so TestClient HTTP requests use the same SQLAlchemy session as the test. A `begin_nested()` SAVEPOINT prevents route-level `commit()` calls from committing the outer transaction; an `after_transaction_end` event listener restarts the SAVEPOINT after each release. The outer transaction is rolled back in `finally`, ensuring no test data reaches the production database.
+
+## [0.4.3] - 2026-05-23
+
+### Added
+
+- **Frontend**: New `ReviewCompleteScreen` React component — session-end screen with "Return to Vocabulary Area" and "Return to Learning Area" navigation buttons.
+
+### Changed
+
+- **Frontend**: `ReviewArea` updated with `currentIndex` and `isTransitioning` state to drive card progression; `onDifficultySelect` now calls `updateSenseReview` (fire-and-forget) and advances the card after a 150 ms opacity + `translate-x` CSS transition; progress counter reflects the current card index; `ReviewCompleteScreen` is rendered when the queue is exhausted; `onNavigate` prop is now consumed (was declared but unused).
+
 ## [0.4.2] - 2026-05-23
 
 ### Added
