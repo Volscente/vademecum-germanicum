@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2026-06-16
+
+### Changed
+
+- **Frontend**: Schema & Types audit (milestone 8-multiple-prepositions, TASK-1) — confirmed `senseSchema.grammar_patterns` is already `z.array(grammarPatternSchema).min(1)` in `wordSchema.ts` and `Sense.grammar_patterns` is already `GrammarPattern[]` in `word.ts`; no code changes required. Documented a minor preposition optionality mismatch (`nullable().optional()` in Zod vs `string | null` in the TypeScript interface) with no practical impact; TASK-2 must initialise new grammar pattern rows with `null` rather than `undefined` to align with the backend contract.
+
 ## [0.4.6] - 2026-05-25
 
 ### Added
