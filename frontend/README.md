@@ -78,6 +78,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 ## Changelog
 
+### 2026-06-16 (v0.4.9)
+
+- Enrichment audit (TASK-3): confirmed `onEnrich` in `AddWordModal.tsx` and `onReEnrich` in `EditWordModal.tsx` pass `senses: enriched.senses` directly to `reset()` with no `grammar_patterns` truncation; no code changes required.
+
 ### 2026-06-16 (v0.4.8)
 
 - Added `GrammarPatternFields.tsx`: reusable sub-component encapsulating a nested `useFieldArray` for grammar patterns per sense; renders preposition input + case select per row with Add Grammar Pattern and Remove controls; Remove button is disabled when only one row remains; appends `{ preposition: null, case: "Akkusativ" }` to preserve the backend nullable contract.
