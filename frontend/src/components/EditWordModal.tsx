@@ -1,5 +1,6 @@
 import { enrichWord, updateWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
+import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { Word } from "@/types/word";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clsx } from "clsx";
@@ -65,6 +66,7 @@ export default function EditWordModal({
   const [enrichError, setEnrichError] = useState<string | null>(null);
   const [verbMorphologyCollapsed, setVerbMorphologyCollapsed] = useState(false);
   const [sensesCollapsed, setSensesCollapsed] = useState<boolean[]>([]);
+  const [grammarPatternsCollapsed, setGrammarPatternsCollapsed] = useState<boolean[]>([]);
 
   const {
     register,
@@ -93,6 +95,16 @@ export default function EditWordModal({
   // Re-enrich calls reset() which repopulates senseFields from zero, expanding all cards.
   useEffect(() => {
     setSensesCollapsed((prev) => {
+      if (senseFields.length > prev.length) {
+        return [...prev, ...Array(senseFields.length - prev.length).fill(false)];
+      }
+      return prev.slice(0, senseFields.length);
+    });
+  }, [senseFields.length]);
+
+  // Mirror pattern for per-sense grammar-pattern collapse state.
+  useEffect(() => {
+    setGrammarPatternsCollapsed((prev) => {
       if (senseFields.length > prev.length) {
         return [...prev, ...Array(senseFields.length - prev.length).fill(false)];
       }
@@ -131,6 +143,7 @@ export default function EditWordModal({
   const handleCollapseAll = (): void => {
     setVerbMorphologyCollapsed(true);
     setSensesCollapsed((prev) => prev.map(() => true));
+    setGrammarPatternsCollapsed((prev) => prev.map(() => true));
   };
 
   const handleDelete = async () => {
@@ -434,34 +447,47 @@ export default function EditWordModal({
                       </div>
 
                       {/* Grammar Patterns */}
-                      <div>
-                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
-                          Grammar Patterns
-                        </p>
-                        {(watchedSenses[sIdx]?.grammar_patterns ?? []).map(
-                          (_, gpIdx) => (
-                            <div key={gpIdx} className="flex gap-2 mt-1">
-                              <input
-                                {...register(
-                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.preposition`,
-                                )}
-                                placeholder="Preposition (optional)"
-                                className={inputClass}
+                      <div className="border border-forest-200 dark:border-forest-600 rounded-lg p-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setGrammarPatternsCollapsed((prev) =>
+                              prev.map((c, i) => (i === sIdx ? !c : c)),
+                            )
+                          }
+                          className="flex w-full items-center gap-2"
+                        >
+                          {grammarPatternsCollapsed[sIdx] ? (
+                            <ChevronDown className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                          ) : (
+                            <ChevronUp className="w-3 h-3 text-forest-600 dark:text-forest-300" />
+                          )}
+                          <span className="text-xs font-semibold text-forest-600 dark:text-forest-300 uppercase tracking-wide">
+                            Grammar Patterns
+                          </span>
+                          {!!errors.senses?.[sIdx]?.grammar_patterns &&
+                            grammarPatternsCollapsed[sIdx] && (
+                              <span
+                                className="ml-auto h-2 w-2 rounded-full bg-red-500"
+                                aria-label="Contains errors"
                               />
-                              <select
-                                {...register(
-                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.case`,
-                                )}
-                                className={inputClass}
-                              >
-                                <option value="Akkusativ">Akkusativ</option>
-                                <option value="Dativ">Dativ</option>
-                                <option value="Nominativ">Nominativ</option>
-                                <option value="Genitiv">Genitiv</option>
-                              </select>
-                            </div>
-                          ),
-                        )}
+                            )}
+                        </button>
+                        <div
+                          className={clsx(
+                            "overflow-hidden transition-[max-height] duration-300",
+                            grammarPatternsCollapsed[sIdx] ? "max-h-0" : "max-h-500",
+                          )}
+                        >
+                          <div className="pt-2">
+                            <GrammarPatternFields
+                              senseIndex={sIdx}
+                              control={control}
+                              errors={errors}
+                              register={register}
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       {/* Example Sentences */}
