@@ -1,11 +1,3 @@
----
-name: Pull Request
-about: Describe code changes
-title: ""
-labels: ""
-assignees: ""
----
-
 ## Description
 
 The PR resolves the issue #<issue_number> by ...

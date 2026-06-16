@@ -1,5 +1,6 @@
 import { enrichWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
+import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -282,35 +283,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                       </div>
 
                       {/* Grammar Patterns */}
-                      <div>
-                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
-                          Grammar Patterns
-                        </p>
-                        {(watchedSenses[sIdx]?.grammar_patterns ?? []).map(
-                          (_, gpIdx) => (
-                            <div key={gpIdx} className="flex gap-2 mt-1">
-                              <input
-                                {...register(
-                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.preposition`,
-                                )}
-                                placeholder="Preposition (optional)"
-                                className={inputClass}
-                              />
-                              <select
-                                {...register(
-                                  `senses.${sIdx}.grammar_patterns.${gpIdx}.case`,
-                                )}
-                                className={inputClass}
-                              >
-                                <option value="Akkusativ">Akkusativ</option>
-                                <option value="Dativ">Dativ</option>
-                                <option value="Nominativ">Nominativ</option>
-                                <option value="Genitiv">Genitiv</option>
-                              </select>
-                            </div>
-                          ),
-                        )}
-                      </div>
+                      <GrammarPatternFields
+                        senseIndex={sIdx}
+                        control={control}
+                        errors={errors}
+                        register={register}
+                      />
 
                       {/* Example Sentences */}
                       <div>
