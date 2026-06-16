@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2026-06-16
+
+### Changed
+
+- **Frontend**: Enrichment audit (milestone 8-multiple-prepositions, TASK-3) — confirmed `onEnrich` in `AddWordModal` and `onReEnrich` in `EditWordModal` both pass `senses: enriched.senses` (the full `Sense[]` array, including `grammar_patterns: GrammarPattern[]` per sense) directly to `reset()` with no truncation; no code changes required.
+
+## [0.4.8] - 2026-06-16
+
+### Added
+
+- **Frontend**: New `GrammarPatternFields` React component — reusable sub-component that owns a nested `useFieldArray` for grammar patterns inside a sense loop; renders preposition input + case select per row with Add Grammar Pattern and Remove controls; Remove button is disabled at one row to enforce the min-1 constraint visually.
+
+### Changed
+
+- **Frontend**: `AddWordModal` grammar-pattern section replaced with `<GrammarPatternFields>` — users can now add and remove grammar pattern rows per sense in the word creation form.
+- **Frontend**: `EditWordModal` grammar-pattern section replaced with `<GrammarPatternFields>` wrapped in a collapsible Grammar Patterns card (same `max-h` CSS toggle pattern as Verb Morphology and Sense cards); `grammarPatternsCollapsed: boolean[]` state tracks per-sense collapse; "Collapse All" now also collapses grammar pattern cards.
+
+## [0.4.7] - 2026-06-16
+
+### Changed
+
+- **Frontend**: Schema & Types audit (milestone 8-multiple-prepositions, TASK-1) — confirmed `senseSchema.grammar_patterns` is already `z.array(grammarPatternSchema).min(1)` in `wordSchema.ts` and `Sense.grammar_patterns` is already `GrammarPattern[]` in `word.ts`; no code changes required. Documented a minor preposition optionality mismatch (`nullable().optional()` in Zod vs `string | null` in the TypeScript interface) with no practical impact; TASK-2 must initialise new grammar pattern rows with `null` rather than `undefined` to align with the backend contract.
+
 ## [0.4.6] - 2026-05-25
 
 ### Added

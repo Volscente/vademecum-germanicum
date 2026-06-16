@@ -12,8 +12,9 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **`src/components/ReviewArea.tsx`** — Full-canvas review session container; owns `currentIndex` and `isTransitioning` state; fires `updateSenseReview` on difficulty selection then advances the card with a 150 ms opacity + `translate-x` CSS transition; renders `ReviewCompleteScreen` when the queue is exhausted; shows an empty-queue fallback
 - **`src/components/ReviewCompleteScreen.tsx`** — Session-end screen rendered when all cards in the review queue have been rated; two buttons to navigate back to the Vocabulary Area or Learning Area via `onNavigate`
 - **`src/components/SenseCard.tsx`** — Flashcard display for a single sense; three collapsible sections (Word Information, Verb Morphology, Sense Information); Verb Morphology rendered only when `category === "verb"`; four Difficulty Level buttons (Easy / Medium / Hard / Very Hard)
-- **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields
-- **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable
+- **`src/components/GrammarPatternFields.tsx`** — Reusable sub-component that owns the nested `useFieldArray` for grammar patterns inside a sense; renders preposition input + case select per row with Add/Remove controls; Remove is disabled when only one row remains
+- **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields; uses `GrammarPatternFields` per sense for multi-row grammar pattern editing
+- **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable; uses `GrammarPatternFields` per sense inside a collapsible Grammar Patterns card
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
 - **`src/components/SearchBar.tsx`** — Debounced search input (300 ms default) that fires an `onSearch` callback when the user pauses typing
 - **`src/components/ThemeToggle.tsx`** — Toggles light/dark mode by manipulating the `dark` CSS class on `<html>` and persisting the choice in `localStorage`
@@ -30,6 +31,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - `<SenseCard sense onDifficultySelect>` — sense flashcard; `onDifficultySelect: (level: "Easy" | "Medium" | "Hard" | "VeryHard") => void`
 - `<AreaToggle area onAreaChange>` — pill toggle between `"vocabulary"` and `"learning"`; not rendered when `area === "review"`
 - `<SensesTable onStartReview>` — senses table with multi-select checkboxes and "Start Review" button; calls `onStartReview(selected: SenseWithWord[])` to hand off the review queue
+- `<GrammarPatternFields senseIndex control errors register>` — nested field-array block for grammar patterns; `senseIndex: number`, `control: Control<WordFormValues>`, `errors: FieldErrors<WordFormValues>`, `register: UseFormRegister<WordFormValues>`; used inside the sense loop of both modals
 - `<AddWordModal onWordAdded>` — button + modal to create a word; calls `onWordAdded()` after a successful save
 - `<EditWordModal word isOpen onClose onWordDeleted onWordUpdated>` — full edit form for all word fields including senses; calls `onWordUpdated` after a successful save and `onWordDeleted` after deletion
 - `<WordTable words onRefresh>` — renders the vocabulary table; calls `onRefresh()` after a deletion
@@ -61,7 +63,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 
 - The backend base URL is hardcoded to `http://localhost:8000` in both `page.tsx` and `lib/api.ts`; no environment-variable abstraction exists yet.
 - Dark mode is initialised by an inline `<script>` in `layout.tsx` that runs before React hydrates, reading `localStorage.theme` and the system `prefers-color-scheme` preference. The `<html>` element has `suppressHydrationWarning` set.
-- `wordSchema` is the single source of truth for form validation — both `AddWordModal` and `EditWordModal` must use it; diverging will silently break backend contract alignment. The schema includes nested `senseSchema` with `min_length=1` enforced at the Zod layer.
+- `wordSchema` is the single source of truth for form validation — both `AddWordModal` and `EditWordModal` must use it; diverging will silently break backend contract alignment. The schema includes nested `senseSchema` with `min_length=1` enforced at the Zod layer, and `grammar_patterns: z.array(grammarPatternSchema).min(1)` mirroring the backend constraint.
+- Every sense must retain at least one grammar pattern — enforced at the Zod layer (`min(1)`) and in the UI via the disabled Remove button in `GrammarPatternFields`, with the backend HTTP 422 as the final guard.
+- `GrammarPatternFields` must not be called inside a `.map()` callback — it calls `useFieldArray` internally and must be rendered as a proper React component to comply with the Rules of Hooks.
+- New grammar pattern rows must be initialised with `preposition: null` (not `undefined`) to align with the backend `nullable` contract and the `GrammarPattern` TypeScript interface.
 - Without a search query, the word list is capped at 10 results (`?limit=10`); search results are uncapped.
 
 ## Out of scope
@@ -72,6 +77,16 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-06-16 (v0.4.9)
+
+- Enrichment audit (TASK-3): confirmed `onEnrich` in `AddWordModal.tsx` and `onReEnrich` in `EditWordModal.tsx` pass `senses: enriched.senses` directly to `reset()` with no `grammar_patterns` truncation; no code changes required.
+
+### 2026-06-16 (v0.4.8)
+
+- Added `GrammarPatternFields.tsx`: reusable sub-component encapsulating a nested `useFieldArray` for grammar patterns per sense; renders preposition input + case select per row with Add Grammar Pattern and Remove controls; Remove button is disabled when only one row remains; appends `{ preposition: null, case: "Akkusativ" }` to preserve the backend nullable contract.
+- Updated `AddWordModal.tsx`: replaced the inline grammar-pattern `.map()` block inside the sense loop with `<GrammarPatternFields>`, enabling multi-row grammar pattern editing per sense.
+- Updated `EditWordModal.tsx`: replaced the inline grammar-pattern `.map()` block with `<GrammarPatternFields>` wrapped in a collapsible card (`max-h` CSS toggle, `ChevronDown`/`ChevronUp` header, red error badge when collapsed with errors); added `grammarPatternsCollapsed: boolean[]` state synced via `useEffect` on `senseFields.length`; extended `handleCollapseAll` to also collapse grammar pattern cards.
 
 ### 2026-05-23 (v0.4.3)
 
