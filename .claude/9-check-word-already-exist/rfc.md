@@ -55,6 +55,8 @@ The word creation flow in `AddWordModal` has no guard against entering a word th
 - Real-time notification in `AddWordModal` when the typed word already exists in the vocabulary table
 - Block form submission when the entered word is a duplicate
 - Disable the Enrich button when the entered word already exists
+- DB-level `UNIQUE (word)` constraint on the `words` table, enforced by a migration script
+- Backend 409 response on `POST /words/` when the constraint is violated
 
 **Out-of-Scope:**
 
@@ -72,9 +74,13 @@ The word creation flow in `AddWordModal` has no guard against entering a word th
 
 ## Approach Overview {#approach-overview}
 
-The duplicate check is implemented entirely in the frontend, using the existing `GET /words/?search=<word>` backend endpoint as the data source. When the user types in the `word` field of `AddWordModal`, a `useWatch` hook observes the field value and a `useEffect` sets a 300 ms debounce timer. On each debounced fire, a new `checkWordExists` helper (added to `api.ts`) calls `GET /words/?search=<value>` and filters the response for a case-insensitive exact match on the `word` field. The result — a boolean `isDuplicate` — is stored in a `useState` variable local to `AddWordModal`. When `isDuplicate` is `true`, an inline warning message is rendered below the word input, the submit button is disabled, and the Enrich button is disabled.
+The duplicate check operates at two layers. At the **database layer**, a `UNIQUE (word)` constraint (case-sensitive) is added to the `words` table via a migration script; the backend `POST /words/` endpoint catches the resulting integrity error and returns HTTP 409. At the **frontend layer**, `AddWordModal` performs a proactive debounced lookup so the user receives feedback before attempting submission.
 
-The proposal's stated approach direction (debounced lookup + block save + disable Enrich) is adopted as-is. One refinement: rather than relying on a Zod custom validation (which fires only on blur or submit), the duplicate state is kept in a separate `useState` variable so the Enrich button can also react to it independently of React Hook Form's validation state. The native RHF `setError` mechanism is used to surface the error inline below the word input field, keeping the visual feedback consistent with other field-level errors in the form.
+When the user types in the `word` field, a `useWatch` hook observes the value and a `useEffect` sets a 300 ms debounce timer. On each debounced fire, a new `checkWordExists` helper (added to `api.ts`) calls `GET /words/?search=<value>` and filters the response for a **case-sensitive** exact match on the `word` field — aligned with the DB constraint. The result — a boolean `isDuplicate` — is stored in a `useState` variable local to `AddWordModal`. When `isDuplicate` is `true`, an inline warning is rendered below the word input, the submit button is disabled, and the Enrich button is disabled. If a duplicate somehow slips past the debounce (race condition, fast typing), the 409 response from `POST /words/` is caught and surfaced as a form-level error.
+
+The case-sensitive matching is deliberate: in German, capitalisation is grammatically significant — "laufen" (verb) and "Laufen" (nominalised noun) are distinct vocabulary entries and must not be conflated.
+
+One refinement over the original proposal direction: rather than relying solely on Zod's `.refine()`, the duplicate state is kept in a separate `useState` variable so the Enrich button can react to it independently of the RHF validation cycle.
 
 ### Integration {#integration}
 
@@ -82,7 +88,11 @@ The proposal's stated approach direction (debounced lookup + block save + disabl
 
 ### M1 — Backend duplicate-check support {#m1-backend-duplicate-check-support}
 
-Add `checkWordExists(word: string): Promise<boolean>` to `api.ts`. The function calls `GET /words/?search=<word>` and returns `true` if the response array contains any entry where `entry.word.toLowerCase() === word.toLowerCase()`. No backend changes are required; the existing endpoint already supports case-insensitive substring search and returns the full `word` field on each result.
+Three changes, all backend or API-layer:
+
+1. **Migration**: add `migrations/add_unique_word_constraint.sql` with `ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word);`. Run via `just run_migration`. The constraint is case-sensitive, matching German orthographic convention.
+2. **Backend 409 handler**: in `main.py`, catch `IntegrityError` (or `UniqueViolation`) on `POST /words/` and return `HTTPException(status_code=409, detail="A word with this spelling already exists.")`.
+3. **Frontend API helper**: add `checkWordExists(word: string): Promise<boolean>` to `api.ts`. The function calls `GET /words/?search=<word>&limit=500` and returns `true` if any result has `entry.word === word` (case-sensitive exact match).
 
 ### M2 — Frontend real-time duplicate notification in AddWordModal {#m2-frontend-real-time-duplicate-notification-in-addwordmodal}
 
@@ -91,6 +101,7 @@ In `AddWordModal.tsx`:
 1. Add `const wordValue = useWatch({ control, name: "word" })`.
 2. Add `const [isDuplicate, setIsDuplicate] = useState(false)` and `const duplicateCheckRef = useRef<ReturnType<typeof setTimeout> | null>(null)`.
 3. In a `useEffect` watching `wordValue`: clear any pending timer, reset `isDuplicate` to `false`, and if `wordValue` is non-empty schedule a 300 ms call to `checkWordExists(wordValue)`. On resolution, call `setIsDuplicate(result)` and, when `true`, call `setError("word", { message: "This word already exists in your vocabulary." })`.
+4. In the `onSubmit` handler, catch a 409 response from `POST /words/` and call `setError("word", { message: "This word already exists in your vocabulary." })` as a last-resort fallback.
 4. Render an inline warning under the word input field when `isDuplicate` is `true` (the `setError` message surfaces via the existing `errors.word` display path in the form).
 
 ### M3 — Block save and disable Enrich on duplicate {#m3-block-save-and-disable-enrich-on-duplicate}
@@ -115,8 +126,8 @@ Total estimated effort: **3 sessions**.
 
 | Milestone | Description | Est. effort | GitHub Issue |
 | :-------- | :---------- | :---------- | :----------- |
-| M1 — Backend duplicate-check support | Add `checkWordExists` to `api.ts`; wire to existing `GET /words/` endpoint | 0.5 sessions | #{issue} |
-| M2 — Frontend real-time duplicate notification | Add `useWatch` + debounce + `setError` to `AddWordModal`; render inline warning | 1 session | #{issue} |
+| M1 — Backend duplicate-check support | DB migration (`UNIQUE (word)`), backend 409 handler on `POST /words/`, `checkWordExists` in `api.ts` | 1 session | #{issue} |
+| M2 — Frontend real-time duplicate notification | Add `useWatch` + debounce + `setError` to `AddWordModal`; render inline warning; handle 409 in `onSubmit` | 1 session | #{issue} |
 | M3 — Block save and disable Enrich on duplicate | Gate submit and Enrich button on `isDuplicate` state | 0.5 sessions | #{issue} |
 
 ### Recommended Order
@@ -158,7 +169,7 @@ A: No acronyms specific to this RFC. Standard project terms:
 
 | Risk / Question | Likelihood | Mitigation / Answer |
 | :-------------- | :--------- | :------------------ |
-| No unique constraint on `word` column in PostgreSQL — concurrent creation or a fast submission before debounce fires can still produce duplicates | Medium | The client-side check reduces accidental duplicates; a follow-up migration adding `UNIQUE (word)` to the `words` table (plus a 409 handler on the backend) would close this gap completely |
+| No unique constraint on `word` column in PostgreSQL — concurrent creation or a fast submission before debounce fires can still produce duplicates | Medium | **Addressed in this initiative**: M1 adds `UNIQUE (word)` to the `words` table and a 409 handler on `POST /words/`; M2 catches the 409 in the frontend as a last-resort fallback |
 | `GET /words/` returns up to 100 results by default (`limit=100` backend default); if the vocabulary exceeds 100 words starting with the same substring, the exact match might not appear in the response | Low | Pass `limit=500` (or a safe upper bound) in `checkWordExists`; alternatively, add an exact-match query parameter to the backend endpoint in a future iteration |
 | Debounce creates a brief window where `isDuplicate` is `false` while the network call is in flight — the save button is technically enabled for 300 ms + network latency after a duplicate is typed | Low | Acceptable UX trade-off given the non-critical nature of the check; the backend remains the authoritative guard |
 | `setError` on the `word` field will be cleared by the next RHF validation cycle (e.g., on re-render or `trigger()`); this could cause the duplicate error to disappear unexpectedly | Low | Ensure the `useEffect` re-runs on every `wordValue` change so `setError` is re-applied if the duplicate condition persists; `clearErrors("word")` is called when `isDuplicate` resets to `false` |
