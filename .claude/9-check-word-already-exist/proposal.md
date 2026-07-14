@@ -7,13 +7,21 @@ notion-page: "https://app.notion.com/p/9-Check-word-already-existing-3925cc6c0f0
 github-repo: "https://github.com/Volscente/vademecum-germanicum"
 milestone: [9-check-word-already-exist](https://github.com/Volscente/vademecum-germanicum/milestone/11)
 tech-stack:
-  - ""                  # e.g. Python, Flask, whoosh
+  - "Next.js 16 / TypeScript"
+  - "React Hook Form + Zod"
+  - "FastAPI"
+  - "PostgreSQL"
 scope-in:
-  - ""                  # Each line is one in-scope capability
+  - "Real-time notification in AddWordModal when the typed word already exists in the vocabulary table"
+  - "Block form submission when the entered word is a duplicate"
+  - "Disable the Enrich button when the entered word already exists"
 scope-out:
-  - ""                  # Format: "Item: reason" (e.g. "Fuzzy matching: future phase")
+  - "Fuzzy / phonetic matching: only exact (case-insensitive) duplicate detection is required"
+  - "Duplicate checking in EditWordModal: the initiative targets word creation only"
 milestones:
-  - ""                  # Ordered milestone names; each maps to a GitHub Issue
+  - "Backend duplicate-check support"
+  - "Frontend real-time duplicate notification in AddWordModal"
+  - "Block save and disable Enrich on duplicate"
 context-paths:
   - "frontend/README.md"
   - "backend/README.md"
@@ -21,40 +29,28 @@ context-paths:
 
 ## Problem
 
-<!-- Required. Describe the technical gap or pain point driving this initiative.
-     Write as much as needed — one sentence or several paragraphs.
-     No personal motivation here — that lives in the Notion page above. -->
+The word creation flow in AddWordModal has no guard against entering a word that already exists in the vocabulary table. Users can submit duplicate entries without any warning, which pollutes the vocabulary list and may cause confusion in the learning and review areas. There is currently no client-side or server-side mechanism that notifies the user of an existing match before the save action is committed.
 
 ## Approach direction
 
-<!-- Optional. Your initial idea or preferred high-level approach.
-     Leave blank if you want Claude to propose the approach freely. -->
+Use a debounced lookup against the existing `GET /words/?search=` backend endpoint as the user types in the word field of AddWordModal, and surface a visible duplicate warning. If an exact match is found, disable both the save button and the Enrich button to prevent the duplicate from being persisted.
 
 ## Success criteria
 
-<!-- Optional. How will you know this initiative is done?
-     List measurable outcomes (e.g. "users can search by ingredient name in < 300 ms").
-     Used to generate the Objectives section in the RFC. -->
+- Typing a word that already exists in the vocabulary table surfaces an inline notification in AddWordModal without requiring form submission.
+- The form cannot be submitted while a duplicate word is detected — the save action is blocked.
+- The Enrich button is disabled when the entered word matches an existing entry.
 
 ## Constraints
 
-<!-- Optional. Hard requirements the solution must satisfy.
-     Examples: SLA targets, banned technologies, budget caps, compliance rules.
-     Claude will not relax these when designing the approach. -->
-
-## Desired tech
-
-<!-- Optional. Technologies you want to experiment with or strongly prefer.
-     Separate from the tech-stack YAML field (which lists the existing stack);
-     this is for new tools you want to try — include your reasoning if useful. -->
+- Duplicate detection must be exact and case-insensitive, consistent with the existing search behaviour on `GET /words/?search=`.
+- The solution must not introduce a new backend endpoint if the existing search endpoint can satisfy the requirement.
 
 ## Integration context
 
-<!-- Optional. How should the solution integrate with the current system?
-     E.g. "must reuse the existing auth middleware", "expose a REST endpoint consumed by the mobile app".
-     Used to shape integration subsections in the RFC. -->
+AddWordModal already holds the word input field and is wired to the `wordSchema` Zod schema via React Hook Form. The backend `GET /words/?search=` endpoint performs case-insensitive substring search on the `word` column, making it a natural hook for the duplicate check. The SearchBar component demonstrates the established debounce pattern (300 ms default) that AddWordModal can reuse.
 
 ## Known risks / concerns
 
-<!-- Optional. Doubts about your approach or technical uncertainties.
-     Used to seed the Risks & Open Questions table in the RFC. -->
+- `GET /words/?search=` does substring matching, not exact matching — the frontend must filter the response to confirm a full exact match rather than treating any result as a duplicate.
+- A brief window exists between the debounce delay and form submission where a race condition could allow a duplicate to slip through; the backend `POST /words/` endpoint remains the authoritative last guard.
