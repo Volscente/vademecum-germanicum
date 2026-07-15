@@ -217,3 +217,30 @@ def test_update_word_without_senses_preserves_existing(client, valid_word_payloa
     data = response.json()
     assert data["translation"] == "Extra charge"
     assert len(data["senses"]) == 1
+
+
+def test_create_word_duplicate_returns_409(client, valid_word_payload):
+    """
+    Ensure a second POST with the same word value returns HTTP 409.
+    """
+    client.post("/words/", json=valid_word_payload)
+    response = client.post("/words/", json=valid_word_payload)
+    assert response.status_code == 409
+    assert response.json()["detail"] == "A word with this spelling already exists."
+
+
+def test_create_word_case_sensitive_duplicate(client, valid_word_payload):
+    """
+    Ensure that words differing only in capitalisation are treated as distinct entries.
+
+    The UNIQUE (word) constraint is case-sensitive, reflecting German orthographic
+    convention where e.g. "laufen" (verb) and "Laufen" (nominalised noun) coexist.
+    """
+    lower_payload = {**valid_word_payload, "word": "laufen"}
+    upper_payload = {**valid_word_payload, "word": "Laufen"}
+
+    response_lower = client.post("/words/", json=lower_payload)
+    response_upper = client.post("/words/", json=upper_payload)
+
+    assert response_lower.status_code == 200
+    assert response_upper.status_code == 200

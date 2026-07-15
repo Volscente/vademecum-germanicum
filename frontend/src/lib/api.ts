@@ -97,3 +97,34 @@ export async function updateWord(
 
   return response.json() as Promise<Word>;
 }
+
+/**
+ * Check whether a word already exists in the vocabulary table.
+ *
+ * Calls GET /words/?search=<word>&limit=500 and filters the response for a
+ * case-insensitive exact match on the `word` field. The search endpoint does
+ * substring matching, so client-side filtering is required to avoid false
+ * positives (e.g. "laufen" matching "anlaufen").
+ *
+ * @param word - The word string to check, as typed by the user.
+ * @returns Promise resolving to true if an exact (case-insensitive) match
+ *          exists, false otherwise.
+ */
+export async function checkWordExists(word: string): Promise<boolean> {
+  if (!word) {
+    return false;
+  }
+
+  const response = await fetch(
+    `http://localhost:8000/words/?search=${encodeURIComponent(word)}&limit=500`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Duplicate check failed: ${response.status}`);
+  }
+
+  const words = (await response.json()) as Word[];
+  return words.some(
+    (entry) => entry.word.toLowerCase() === word.toLowerCase(),
+  );
+}

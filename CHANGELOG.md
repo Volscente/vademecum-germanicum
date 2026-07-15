@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] - 2026-07-15
+
+### Added
+
+- **Infrastructure**: New `migrations/add_unique_word_constraint.sql` — idempotent `DO $$` block that adds `UNIQUE (word)` constraint (`words_word_key`) to the `words` table; apply with `just run_migration`.
+- **Backend**: `POST /words/` now returns HTTP 409 with `"A word with this spelling already exists."` when the submitted word value violates the `words_word_key` unique constraint.
+- **Backend**: `UniqueConstraint("word", name="words_word_key")` declared in the `Word` ORM model so `create_all` enforces uniqueness on fresh database instances.
+- **Frontend**: `checkWordExists(word: string): Promise<boolean>` helper in `api.ts` — calls `GET /words/?search=<word>&limit=500` and returns `true` if any result is an exact case-insensitive match on the `word` field; returns `false` immediately for an empty input.
+- **Tests**: `test_create_word_duplicate_returns_409` — verifies the second POST of the same word returns HTTP 409 with the correct detail message.
+- **Tests**: `test_create_word_case_sensitive_duplicate` — verifies "laufen" and "Laufen" are treated as distinct entries (constraint is case-sensitive).
+- **Tests**: `apply_migrations` session-scoped fixture in `database_management.py` — idempotently applies the `words_word_key` constraint to the running `vademecum_db` container before the test session starts.
+
 ## [0.4.9] - 2026-06-16
 
 ### Changed

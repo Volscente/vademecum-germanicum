@@ -18,8 +18,8 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 
 - `GET /` — health check; returns a welcome message
 - `POST /words/enrich` — accepts `{"word": str}`, returns `WordEnrichment` with LLM-populated metadata including a `senses` array (min 1) each carrying `grammar_patterns` and `example_sentences`
-- `POST /words/` — creates a new word with its full sense graph; accepts `WordCreate` (including `senses: list[SenseCreate]`), returns `WordRead`
-- `GET /words/?skip&limit&search` — lists words with optional case-insensitive search on `word` and `translation`; each word embeds its full sense graph
+- `POST /words/` — creates a new word with its full sense graph; accepts `WordCreate` (including `senses: list[SenseCreate]`), returns `WordRead`; returns HTTP 409 if the `word` value already exists (enforced by `words_word_key UNIQUE` constraint)
+- `GET /words/?skip&limit&search` — lists words with optional case-insensitive search on `word` and `translation`; each word embeds its full sense graph; used by the frontend as the duplicate-check data source
 - `PUT /words/{word_id}` — partially updates a word; accepts `WordUpdate` (all fields optional, including `senses`); when `senses` is provided it replaces the existing sense list; returns `WordRead`
 - `DELETE /words/{word_id}` — removes a word and all its senses (cascade); returns HTTP 204
 - `GET /senses/` — returns all senses with parent word fields embedded (`word`, `translation`, `gender`, `category`); response schema `SenseWithWordRead`
@@ -51,6 +51,7 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - The enrichment agent is instantiated per-request (no singleton); this is intentional to pick up env var changes without a restart, but adds per-call overhead.
 - DB tables are created at import time via `models.Base.metadata.create_all`; schema migrations are not managed (no Alembic). Breaking schema changes require a manual SQL migration script (see `migrations/` and `just run_migration`).
 - `difficulty_level` defaults to `"Medium"` for all new senses; `last_reviewed_at` starts `NULL`. Both are set/stamped server-side only — never trusted from the client.
+- `words.word` is subject to a `UNIQUE` constraint (`words_word_key`). The constraint is case-sensitive — "laufen" and "Laufen" are distinct entries. `POST /words/` returns HTTP 409 on violation.
 - `last_reviewed_at` is always written using `datetime.now(timezone.utc)`; `datetime.utcnow()` is deprecated and must not be used.
 
 ## Out of scope
@@ -69,6 +70,12 @@ A FastAPI application that serves as the data and AI layer for Vademecum Germani
 - `SenseReviewUpdate` and `SenseWithWordRead` schemas added to `schemas.py`; `SenseRead` extended with the two new fields.
 - `GET /senses/` and `PUT /senses/{sense_id}/review` endpoints implemented in `main.py`.
 - `migrations/add_sense_review_columns.sql` — idempotent `ALTER TABLE` script; apply with `just run_migration`.
+
+### 2026-07-15 (v0.4.10)
+
+- Added `UNIQUE (word)` constraint to the `words` table via `migrations/add_unique_word_constraint.sql` (idempotent — uses a DO block guard).
+- `POST /words/` now catches `IntegrityError` and returns HTTP 409 with `"A word with this spelling already exists."` when the constraint is violated.
+- `UniqueConstraint("word", name="words_word_key")` added to the `Word` ORM model so `create_all` creates the constraint on fresh databases.
 
 ### 2026-05-09 (v0.3.1)
 
