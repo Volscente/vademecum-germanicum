@@ -38,6 +38,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - `<SearchBar onSearch placeholder? delay?>` — debounced search field; fires `onSearch(value)` after the configured delay
 - `<ThemeToggle />` — self-contained dark/light mode toggle; no props
 - `enrichWord(word: string): Promise<WordEnrichment>` — calls `POST /words/enrich` and returns AI-generated sense-based word metadata
+- `checkWordExists(word: string): Promise<boolean>` — calls `GET /words/?search=<word>&limit=500` and returns `true` if any result is an exact case-insensitive match; returns `false` immediately for an empty input string
 - `updateWord(wordId: number, data: WordFormValues): Promise<Word>` — calls `PUT /words/{id}` and returns the updated word with full sense graph
 - `getSenses(): Promise<SenseWithWord[]>` — calls `GET /senses/` and returns all senses with parent word fields embedded
 - `updateSenseReview(senseId, difficultyLevel): Promise<Sense>` — calls `PUT /senses/{id}/review` to persist a difficulty rating and stamp `last_reviewed_at`
@@ -77,6 +78,10 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-07-15 (v0.4.10)
+
+- Added `checkWordExists(word: string): Promise<boolean>` to `api.ts` — calls `GET /words/?search=<word>&limit=500` and filters client-side for a case-insensitive exact match; returns `false` immediately for an empty input.
 
 ### 2026-06-16 (v0.4.9)
 

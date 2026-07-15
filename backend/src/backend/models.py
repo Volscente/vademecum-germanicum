@@ -4,7 +4,7 @@ SQLAlchemy ORM models for the database Data Schema.
 
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, JSON, String, func
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, JSON, String, UniqueConstraint, func
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -129,6 +129,7 @@ class Word(Base):
     """
 
     __tablename__ = "words"
+    __table_args__ = (UniqueConstraint("word", name="words_word_key"),)
 
     id = Column(Integer, primary_key=True, index=True)
 

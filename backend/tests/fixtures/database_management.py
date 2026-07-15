@@ -3,11 +3,38 @@ Database management fixtures.
 """
 
 import pytest
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.orm import Session
 from backend.database import engine, get_db
 from backend.main import app
 from fastapi.testclient import TestClient
+
+
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations():
+    """Ensure schema constraints from SQL migrations are present in the test DB.
+
+    create_all() only creates tables that don't exist yet — it never alters
+    existing tables. This fixture idempotently applies migrations that add
+    constraints so that constraint-dependent tests work against the live
+    vademecum_db container regardless of when the container was first created.
+    """
+    with engine.connect() as conn:
+        conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint WHERE conname = 'words_word_key'
+                    ) THEN
+                        ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word);
+                    END IF;
+                END $$;
+                """
+            )
+        )
+        conn.commit()
 
 
 @pytest.fixture(scope="session")
