@@ -41,7 +41,7 @@ Establish the authoritative duplicate guard at the database layer and provide th
 
 ### Technical Overview
 
-The migration uses a plain `ALTER TABLE` statement consistent with the existing migration pattern (`just run_migration`). The constraint is case-sensitive, reflecting German orthographic convention where "laufen" (verb) and "Laufen" (noun) are distinct entries. The 409 handler in `main.py` catches `sqlalchemy.exc.IntegrityError` (or the underlying `psycopg2.errors.UniqueViolation`) before SQLAlchemy propagates it as a 500. The `checkWordExists` helper in `api.ts` reuses the existing `http://localhost:8000` base URL already used by `enrichWord`; the `limit=500` parameter prevents the vocabulary from outgrowing the default `limit=100` response window.
+The migration wraps the `ALTER TABLE` in an idempotent `DO $$ ... IF NOT EXISTS (pg_constraint) ...` guard, since `ADD CONSTRAINT` has no native `IF NOT EXISTS` form (unlike the `ADD COLUMN IF NOT EXISTS` pattern used in the existing `add_sense_review_columns.sql`); apply it with `just run_migration migrations/add_unique_word_constraint.sql`. The constraint is case-sensitive, reflecting German orthographic convention where "laufen" (verb) and "Laufen" (noun) are distinct entries. The 409 handler in `main.py` catches `sqlalchemy.exc.IntegrityError` (or the underlying `psycopg2.errors.UniqueViolation`) before SQLAlchemy propagates it as a 500. The `checkWordExists` helper in `api.ts` reuses the existing `http://localhost:8000` base URL already used by `enrichWord`; the `limit=500` parameter prevents the vocabulary from outgrowing the default `limit=100` response window.
 
 ---
 

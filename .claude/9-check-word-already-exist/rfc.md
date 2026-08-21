@@ -90,7 +90,7 @@ One refinement over the original proposal direction: rather than relying solely 
 
 Three changes, all backend or API-layer:
 
-1. **Migration**: add `migrations/add_unique_word_constraint.sql` with `ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word);`. Run via `just run_migration`. The constraint is case-sensitive, matching German orthographic convention.
+1. **Migration**: add `migrations/add_unique_word_constraint.sql` with an idempotent `DO $$ ... IF NOT EXISTS (pg_constraint) ... ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word); ... END $$;` guard (`ADD CONSTRAINT` has no native `IF NOT EXISTS` form). Run via `just run_migration migrations/add_unique_word_constraint.sql`. The constraint is case-sensitive, matching German orthographic convention.
 2. **Backend 409 handler**: in `main.py`, catch `IntegrityError` (or `UniqueViolation`) on `POST /words/` and return `HTTPException(status_code=409, detail="A word with this spelling already exists.")`.
 3. **Frontend API helper**: add `checkWordExists(word: string): Promise<boolean>` to `api.ts`. The function calls `GET /words/?search=<word>&limit=500` and returns `true` if any result has `entry.word === word` (case-sensitive exact match).
 
