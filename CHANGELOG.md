@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.12] - 2026-08-21
+
+### Changed
+
+- **Frontend**: `AddWordModal`'s "Enrich" button now also disables (with a `title` tooltip explaining why) while `isDuplicate` is `true`, appended to its existing `!wordValue || isEnriching` condition.
+- **Frontend**: `AddWordModal`'s "Save Word" submit button now disables while `isDuplicate` is `true` — it previously had no `disabled` prop at all.
+
 ## [0.4.11] - 2026-08-21
 
 ### Added

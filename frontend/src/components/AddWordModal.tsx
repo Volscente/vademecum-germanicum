@@ -178,7 +178,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                   <button
                     type="button"
                     onClick={onEnrich}
-                    disabled={!wordValue || isEnriching}
+                    disabled={!wordValue || isEnriching || isDuplicate}
+                    title={
+                      isDuplicate
+                        ? "This word already exists in your vocabulary."
+                        : undefined
+                    }
                     className="flex items-center gap-1 px-3 py-2 rounded bg-forest-100 dark:bg-forest-700 text-forest-700 dark:text-forest-200 hover:bg-forest-200 dark:hover:bg-forest-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     <Sparkles className="w-4 h-4" />
@@ -380,7 +385,8 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                 </button>
                 <button
                   type="submit"
-                  className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded transition-colors"
+                  disabled={isDuplicate}
+                  className="bg-forest-600 hover:bg-forest-700 text-white px-4 py-2 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Save Word
                 </button>
