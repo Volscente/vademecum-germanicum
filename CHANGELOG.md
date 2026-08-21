@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2026-08-21
+
+### Changed
+
+- **Infrastructure**: Reorganised `justfile` into sections (Setup, Database only, Backend + Database, Frontend only, Full stack). Renamed `run_backend` → `run_backend_stack`, `run_backend_recreate` → `run_backend_stack_recreate`, and `stop_backend` → `stop_backend_stack` to reflect that they operate on the full docker-compose stack (backend + DB), not the backend alone.
+
+### Added
+
+- **Infrastructure**: New `just stop_backend` — stops only the backend container, leaving the database running.
+- **Infrastructure**: New `just stop` — stops the full stack (docker-compose services + frontend dev server), the counterpart to `just dev`.
+- **Infrastructure**: New `just logs_backend` and `just logs_database` — tail container logs for the backend and database services.
+- **Infrastructure**: New `just psql` — opens an interactive `psql` shell in the running database container.
+- **Infrastructure**: New `just install_frontend` — runs `npm install` in `frontend/`.
+
 ## [0.4.12] - 2026-08-21
 
 ### Changed

@@ -109,7 +109,8 @@ All common workflows are defined in the `justfile`:
 ```bash
 just dev                  # Start full stack (PostgreSQL + backend + frontend)
 just run_tests            # Run pytest suite inside Docker
-just stop_backend         # Stop all Docker services
+just stop                 # Stop the full stack (docker-compose services + frontend)
+just stop_backend_stack   # Stop all Docker services (backend + DB)
 ```
 
 Environment variables (database URL, Gemini API key) are loaded from `.env` via `set dotenv-load` in the justfile.
