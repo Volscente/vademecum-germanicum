@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.11] - 2026-08-21
+
+### Added
+
+- **Frontend**: `AddWordModal` now debounces a duplicate check (300 ms) on the `word` field via `checkWordExists`, surfacing "This word already exists in your vocabulary." through `setError("word", ...)` — the user sees an inline warning without needing to submit the form.
+
+### Changed
+
+- **Frontend**: `onSubmit` in `AddWordModal` now handles an HTTP 409 response from `POST /words/` as a fallback, setting the same duplicate-word error when a submission outruns the 300 ms debounce window.
+
 ## [0.4.10] - 2026-07-15
 
 ### Added

@@ -10,7 +10,7 @@
 
 **In scope:**
 
-- `migrations/add_unique_word_constraint.sql` — New migration: `ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word);`
+- `migrations/add_unique_word_constraint.sql` — New migration: idempotent `DO $$ ... IF NOT EXISTS (pg_constraint) ... ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word); ... END $$;` guard
 - `backend/src/backend/main.py` — Catch `IntegrityError` on `POST /words/` and return HTTP 409
 - `frontend/src/lib/api.ts` — Add `checkWordExists(word: string): Promise<boolean>` helper
 
@@ -77,7 +77,7 @@ No new packages required.
 
 | File                                          | Action | Description                                                            |
 | --------------------------------------------- | ------ | ---------------------------------------------------------------------- |
-| `migrations/add_unique_word_constraint.sql`   | Create | Plain `ALTER TABLE` adding `UNIQUE (word)` to the `words` table        |
+| `migrations/add_unique_word_constraint.sql`   | Create | Idempotent `DO $$` block adding `UNIQUE (word)` to the `words` table   |
 | `backend/src/backend/main.py`                 | Edit   | Catch `IntegrityError` in `POST /words/` handler; return HTTP 409      |
 | `frontend/src/lib/api.ts`                     | Edit   | Add `checkWordExists` alongside existing `enrichWord`, `updateWord` etc |
 
@@ -147,7 +147,7 @@ No new models or schemas. The existing `WordCreate`, `WordRead`, and `Word` (Typ
 **Backend tests** (`backend/tests/test_words.py`):
 
 - `test_create_word_duplicate_returns_409` — POST the same word twice; assert the second response is HTTP 409 with `detail` matching `"A word with this spelling already exists."`
-- `test_create_word_case_sensitive_duplicate` — POST "Laufen" then POST "laufen"; assert both succeed (HTTP 201), confirming the constraint is case-sensitive and the two entries are treated as distinct
+- `test_create_word_case_sensitive_duplicate` — POST "Laufen" then POST "laufen"; assert both succeed (HTTP 200 — `POST /words/` has no explicit `status_code`, so it returns FastAPI's default), confirming the constraint is case-sensitive and the two entries are treated as distinct
 
 **Frontend tests** (manual, using `just dev`):
 
@@ -162,7 +162,7 @@ fetch("http://localhost:8000/words/?search=Haus&limit=500")
 **Migration verification:**
 
 ```bash
-just run_migration   # applies add_unique_word_constraint.sql
+just run_migration migrations/add_unique_word_constraint.sql
 # Then in psql:
 \d words             # confirm words_word_key UNIQUE (word) appears in indexes
 ```
