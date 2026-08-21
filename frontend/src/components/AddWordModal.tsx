@@ -1,9 +1,9 @@
-import { enrichWord } from "@/lib/api";
+import { checkWordExists, enrichWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle, Sparkles, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
 interface AddWordModalProps {
@@ -26,6 +26,8 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const duplicateCheckRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     register,
@@ -34,6 +36,8 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
     getValues,
     watch,
     control,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<WordFormValues>({
     resolver: zodResolver(wordSchema),
@@ -53,6 +57,43 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
   const watchedCategory = watch("category");
   const wordValue = watch("word");
 
+  /**
+   * Debounced duplicate check on the "word" field.
+   *
+   * Clears any pending timer on every change so only the last keystroke
+   * within a 300 ms window triggers a network call — the same debounce
+   * interval used by SearchBar. Resets isDuplicate and clears the "word"
+   * field error synchronously on each change so a stale duplicate warning
+   * does not linger while the new value is being typed and re-checked.
+   */
+  useEffect(() => {
+    if (duplicateCheckRef.current) {
+      clearTimeout(duplicateCheckRef.current);
+    }
+    setIsDuplicate(false);
+    clearErrors("word");
+
+    if (!wordValue) {
+      return;
+    }
+
+    duplicateCheckRef.current = setTimeout(async () => {
+      const exists = await checkWordExists(wordValue);
+      setIsDuplicate(exists);
+      if (exists) {
+        setError("word", {
+          message: "This word already exists in your vocabulary.",
+        });
+      }
+    }, 300);
+
+    return () => {
+      if (duplicateCheckRef.current) {
+        clearTimeout(duplicateCheckRef.current);
+      }
+    };
+  }, [wordValue, setError, clearErrors]);
+
   const onSubmit = async (data: WordFormValues) => {
     try {
       const response = await fetch("http://localhost:8000/words/", {
@@ -60,6 +101,13 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
+      if (response.status === 409) {
+        setError("word", {
+          message: "This word already exists in your vocabulary.",
+        });
+        return;
+      }
 
       if (response.ok) {
         reset({ gender: "none", category: "noun", senses: [{ ...emptySense }] });
