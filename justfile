@@ -7,6 +7,10 @@ set dotenv-load := true
 
 ROOT_DIR := justfile_directory()
 
+# =============================================================================
+# Setup
+# =============================================================================
+
 # List available commands
 help:
     @just --justfile {{ justfile() }} --list --unsorted
@@ -19,28 +23,64 @@ help:
         exit 1; \
     fi
 
+# Install frontend dependencies (npm install)
+install_frontend: check_root
+    cd frontend && npm install
+
+# =============================================================================
+# Database only
+# =============================================================================
+
 # Run only database
 run_database:
     docker-compose up -d db
 
+# Stop database
 stop_database:
     docker-compose stop db
 
-# Stop backend docker-compose stack
-stop_backend:
-    docker-compose stop
+# Tail database container logs
+logs_database:
+    docker-compose logs -f db
 
-# Stop frontend dev server (kills any process on port 3000)
-stop_frontend:
-    lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+# Open an interactive psql shell in the running database container
+psql:
+    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB
 
-# Docker-compose build -> Create the docker-compose stack
-run_backend: check_root
+# Apply a SQL migration to the running PostgreSQL container
+# Usage: just run_migration <path/to/migration.sql>
+# Example: just run_migration migrations/add_unique_word_constraint.sql
+run_migration file: check_root
+    docker-compose exec -T db psql -U $POSTGRES_USER -d $POSTGRES_DB \
+        -f /dev/stdin < {{file}}
+
+# Empty the words table — use before applying enum changes that break existing data (DESTRUCTIVE)
+empty_words: check_root
+    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "TRUNCATE TABLE words RESTART IDENTITY;"
+
+# =============================================================================
+# Backend + Database (docker-compose stack)
+# =============================================================================
+
+# Docker-compose build -> Create the docker-compose stack (backend + DB)
+run_backend_stack: check_root
     docker-compose up --build
 
-# Docker-compose build (recreate)
-run_backend_recreate: check_root
+# Docker-compose build (recreate) -> Force-recreate the docker-compose stack (backend + DB)
+run_backend_stack_recreate: check_root
     docker-compose up --build --force-recreate
+
+# Stop the docker-compose stack (backend + DB)
+stop_backend_stack:
+    docker-compose stop
+
+# Stop only the backend container, leaving the database running
+stop_backend:
+    docker-compose stop backend
+
+# Tail backend container logs
+logs_backend:
+    docker-compose logs -f backend
 
 # Backend Unit tests -> Run tests in the docker-compose stack
 run_tests: check_root
@@ -48,19 +88,21 @@ run_tests: check_root
     # Run the uv in the "backend" workspace
     docker-compose run --rm --build backend uv run --package backend pytest backend/tests
 
+# =============================================================================
+# Frontend only
+# =============================================================================
+
 # Run frontend dev server
 run_frontend: check_root
     cd frontend && npm run dev
 
-# Apply the sense review columns migration to the running PostgreSQL container
-# Run order: just run_backend_recreate first (starts all containers), then just run_migration
-run_migration: check_root
-    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB \
-        -f /dev/stdin < migrations/add_sense_review_columns.sql
+# Stop frontend dev server (kills any process on port 3000)
+stop_frontend:
+    lsof -ti:3000 | xargs kill -9 2>/dev/null || true
 
-# Empty the words table — use before applying enum changes that break existing data (DESTRUCTIVE)
-empty_words: check_root
-    docker-compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "TRUNCATE TABLE words RESTART IDENTITY;"
+# =============================================================================
+# Full stack (database + backend + frontend)
+# =============================================================================
 
 # Run backend + frontend and open browser
 dev: check_root
@@ -72,3 +114,6 @@ dev: check_root
     (cd "{{ ROOT_DIR }}/frontend" && npm run dev) &
     sleep 5 && open http://localhost:3000 &
     wait
+
+# Stop the full stack: docker-compose services + frontend dev server
+stop: stop_backend_stack stop_frontend

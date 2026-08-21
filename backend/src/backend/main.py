@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
@@ -190,6 +191,8 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)) -> mode
         The persisted `Word` ORM instance, serialized as `WordRead` by FastAPI.
 
     Raises:
+        HTTPException (409): If the word value already exists in the `words` table
+                             (constraint: words_word_key UNIQUE (word)).
         HTTPException (422): Raised automatically by FastAPI/Pydantic if
                              validation constraints are violated (e.g., empty senses list).
     """
@@ -197,8 +200,14 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)) -> mode
     for sense_data in word.senses:
         db_word.senses.append(_build_sense_orm(sense_data))
 
-    db.add(db_word)
-    db.commit()
+    try:
+        db.add(db_word)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A word with this spelling already exists."
+        )
     return _load_word_with_senses(db, db_word.id)
 
 

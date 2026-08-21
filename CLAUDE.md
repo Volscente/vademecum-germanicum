@@ -76,11 +76,15 @@ The project uses `just` as a task runner. All common workflows are defined in `j
 ### Development
 
 ```bash
-just dev                  # Start full stack: PostgreSQL + backend (Docker) + frontend (localhost:3000)
-just run_database         # Start only PostgreSQL container
-just run_backend          # Build and start backend + DB via docker-compose
-just run_backend_recreate # Force full rebuild of backend
-just run_frontend         # Start Next.js dev server on port 3000
+just dev                        # Start full stack: PostgreSQL + backend (Docker) + frontend (localhost:3000)
+just run_database                # Start only PostgreSQL container
+just run_backend_stack           # Build and start backend + DB via docker-compose
+just run_backend_stack_recreate  # Force-recreate the backend + DB docker-compose stack
+just run_frontend                # Start Next.js dev server on port 3000
+just install_frontend            # Install frontend npm dependencies
+just logs_backend                # Tail backend container logs
+just logs_database               # Tail database container logs
+just psql                        # Open an interactive psql shell in the database container
 ```
 
 ### Testing
@@ -104,9 +108,11 @@ cd frontend && npm run lint   # ESLint on frontend
 ### Stopping Services
 
 ```bash
-just stop_backend   # Stop all docker-compose services
-just stop_frontend  # Kill frontend dev server (port 3000)
-just stop_database  # Stop PostgreSQL container
+just stop                # Stop the full stack: docker-compose services + frontend dev server
+just stop_backend_stack  # Stop all docker-compose services (backend + DB)
+just stop_backend        # Stop only the backend container, leaving the DB running
+just stop_frontend       # Kill frontend dev server (port 3000)
+just stop_database       # Stop PostgreSQL container
 ```
 
 ### Dependency Management

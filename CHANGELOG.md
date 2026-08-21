@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2026-08-21
+
+### Changed
+
+- **Infrastructure**: Reorganised `justfile` into sections (Setup, Database only, Backend + Database, Frontend only, Full stack). Renamed `run_backend` → `run_backend_stack`, `run_backend_recreate` → `run_backend_stack_recreate`, and `stop_backend` → `stop_backend_stack` to reflect that they operate on the full docker-compose stack (backend + DB), not the backend alone.
+
+### Added
+
+- **Infrastructure**: New `just stop_backend` — stops only the backend container, leaving the database running.
+- **Infrastructure**: New `just stop` — stops the full stack (docker-compose services + frontend dev server), the counterpart to `just dev`.
+- **Infrastructure**: New `just logs_backend` and `just logs_database` — tail container logs for the backend and database services.
+- **Infrastructure**: New `just psql` — opens an interactive `psql` shell in the running database container.
+- **Infrastructure**: New `just install_frontend` — runs `npm install` in `frontend/`.
+
+## [0.4.12] - 2026-08-21
+
+### Changed
+
+- **Frontend**: `AddWordModal`'s "Enrich" button now also disables (with a `title` tooltip explaining why) while `isDuplicate` is `true`, appended to its existing `!wordValue || isEnriching` condition.
+- **Frontend**: `AddWordModal`'s "Save Word" submit button now disables while `isDuplicate` is `true` — it previously had no `disabled` prop at all.
+
+## [0.4.11] - 2026-08-21
+
+### Added
+
+- **Frontend**: `AddWordModal` now debounces a duplicate check (300 ms) on the `word` field via `checkWordExists`, surfacing "This word already exists in your vocabulary." through `setError("word", ...)` — the user sees an inline warning without needing to submit the form.
+
+### Changed
+
+- **Frontend**: `onSubmit` in `AddWordModal` now handles an HTTP 409 response from `POST /words/` as a fallback, setting the same duplicate-word error when a submission outruns the 300 ms debounce window.
+
+## [0.4.10] - 2026-07-15
+
+### Added
+
+- **Infrastructure**: New `migrations/add_unique_word_constraint.sql` — idempotent `DO $$` block that adds `UNIQUE (word)` constraint (`words_word_key`) to the `words` table; apply with `just run_migration`.
+- **Backend**: `POST /words/` now returns HTTP 409 with `"A word with this spelling already exists."` when the submitted word value violates the `words_word_key` unique constraint.
+- **Backend**: `UniqueConstraint("word", name="words_word_key")` declared in the `Word` ORM model so `create_all` enforces uniqueness on fresh database instances.
+- **Frontend**: `checkWordExists(word: string): Promise<boolean>` helper in `api.ts` — calls `GET /words/?search=<word>&limit=500` and returns `true` if any result is an exact case-insensitive match on the `word` field; returns `false` immediately for an empty input.
+- **Tests**: `test_create_word_duplicate_returns_409` — verifies the second POST of the same word returns HTTP 409 with the correct detail message.
+- **Tests**: `test_create_word_case_sensitive_duplicate` — verifies "laufen" and "Laufen" are treated as distinct entries (constraint is case-sensitive).
+- **Tests**: `apply_migrations` session-scoped fixture in `database_management.py` — idempotently applies the `words_word_key` constraint to the running `vademecum_db` container before the test session starts.
+
 ## [0.4.9] - 2026-06-16
 
 ### Changed
