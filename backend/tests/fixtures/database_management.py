@@ -34,6 +34,34 @@ def apply_migrations():
                 """
             )
         )
+        conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint WHERE conname = 'resources_url_key'
+                    ) THEN
+                        ALTER TABLE resources ADD CONSTRAINT resources_url_key UNIQUE (url);
+                    END IF;
+                END $$;
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint WHERE conname = 'topics_label_key'
+                    ) THEN
+                        ALTER TABLE topics ADD CONSTRAINT topics_label_key UNIQUE (label);
+                    END IF;
+                END $$;
+                """
+            )
+        )
         conn.commit()
 
 

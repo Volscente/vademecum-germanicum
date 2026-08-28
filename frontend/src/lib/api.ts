@@ -1,5 +1,7 @@
 import { Sense, SenseWithWord, Word, WordEnrichment } from "@/types/word";
 import { WordFormValues } from "@/lib/wordSchema";
+import { Resource, Topic } from "@/types/resource";
+import { ResourceFormValues, TopicFormValues } from "@/lib/resourceSchema";
 
 /**
  * Call POST /words/enrich and return the enriched word metadata.
@@ -127,4 +129,150 @@ export async function checkWordExists(word: string): Promise<boolean> {
   return words.some(
     (entry) => entry.word.toLowerCase() === word.toLowerCase(),
   );
+}
+
+/**
+ * Call POST /resources/ and return the created resource.
+ *
+ * @param payload - The resource data conforming to ResourceFormValues.
+ * @returns The created Resource object.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function createResource(
+  payload: ResourceFormValues,
+): Promise<Resource> {
+  const response = await fetch("http://localhost:8000/resources/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(
+      (detail as { detail?: string }).detail ??
+        `Create failed: ${response.status}`,
+    );
+  }
+
+  return response.json() as Promise<Resource>;
+}
+
+/**
+ * Call PUT /resources/{resourceId} and return the updated resource.
+ *
+ * @param resourceId - The ID of the resource to update.
+ * @param payload - The updated resource data conforming to ResourceFormValues.
+ * @returns The updated Resource object.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function updateResource(
+  resourceId: number,
+  payload: ResourceFormValues,
+): Promise<Resource> {
+  const response = await fetch(
+    `http://localhost:8000/resources/${resourceId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(
+      (detail as { detail?: string }).detail ??
+        `Update failed: ${response.status}`,
+    );
+  }
+
+  return response.json() as Promise<Resource>;
+}
+
+/**
+ * Call DELETE /resources/{resourceId}.
+ *
+ * @param resourceId - The ID of the resource to delete.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function deleteResource(resourceId: number): Promise<void> {
+  const response = await fetch(
+    `http://localhost:8000/resources/${resourceId}`,
+    { method: "DELETE" },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Delete failed: ${response.status}`);
+  }
+}
+
+/**
+ * Call POST /topics/ and return the created topic.
+ *
+ * @param payload - The topic data conforming to TopicFormValues.
+ * @returns The created Topic object.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function createTopic(payload: TopicFormValues): Promise<Topic> {
+  const response = await fetch("http://localhost:8000/topics/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(
+      (detail as { detail?: string }).detail ??
+        `Create failed: ${response.status}`,
+    );
+  }
+
+  return response.json() as Promise<Topic>;
+}
+
+/**
+ * Call PUT /topics/{topicId} and return the updated topic.
+ *
+ * @param topicId - The ID of the topic to update.
+ * @param payload - The updated topic data conforming to TopicFormValues.
+ * @returns The updated Topic object.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function updateTopic(
+  topicId: number,
+  payload: TopicFormValues,
+): Promise<Topic> {
+  const response = await fetch(`http://localhost:8000/topics/${topicId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(
+      (detail as { detail?: string }).detail ??
+        `Update failed: ${response.status}`,
+    );
+  }
+
+  return response.json() as Promise<Topic>;
+}
+
+/**
+ * Call DELETE /topics/{topicId}.
+ *
+ * @param topicId - The ID of the topic to delete.
+ * @throws Error if the HTTP response status is not ok (4xx / 5xx).
+ */
+export async function deleteTopic(topicId: number): Promise<void> {
+  const response = await fetch(`http://localhost:8000/topics/${topicId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Delete failed: ${response.status}`);
+  }
 }

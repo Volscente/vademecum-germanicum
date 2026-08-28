@@ -1,6 +1,6 @@
 "use client";
 
-type Area = "vocabulary" | "learning";
+type Area = "vocabulary" | "learning" | "resources";
 
 interface AreaToggleProps {
   area: Area;
@@ -29,6 +29,16 @@ export default function AreaToggle({ area, onAreaChange }: AreaToggleProps) {
         }`}
       >
         Learning
+      </button>
+      <button
+        onClick={() => onAreaChange("resources")}
+        className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          area === "resources"
+            ? "bg-white dark:bg-forest-700 text-forest-900 dark:text-forest-50 shadow-sm"
+            : "text-forest-600 dark:text-forest-300 hover:text-forest-900 dark:hover:text-forest-100"
+        }`}
+      >
+        Resources
       </button>
     </div>
   );

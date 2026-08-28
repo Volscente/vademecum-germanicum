@@ -333,3 +333,232 @@ def delete_word(word_id: int, db: Session = Depends(get_db)):
 
     # Returning None with status 204 is standard for a successful DELETE
     return None
+
+
+@app.post("/resources/", response_model=schemas.ResourceRead)
+def create_resource(
+    resource: schemas.ResourceCreate, db: Session = Depends(get_db)
+) -> models.Resource:
+    """Persist a new external learning resource.
+
+    Args:
+        resource: Validated request body.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        The persisted `Resource` ORM instance, serialized as `ResourceRead`.
+
+    Raises:
+        HTTPException (409): If a resource with the same URL already exists
+                             (constraint: resources_url_key UNIQUE (url)).
+    """
+    db_resource = models.Resource(**resource.model_dump())
+    try:
+        db.add(db_resource)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A resource with this URL already exists."
+        )
+    db.refresh(db_resource)
+    return db_resource
+
+
+@app.get("/resources/", response_model=list[schemas.ResourceRead])
+def read_resources(
+    skip: int = 0,
+    limit: int = 100,
+    search: str | None = None,
+    db: Session = Depends(get_db),
+) -> list[models.Resource]:
+    """List resources, optionally filtered by a case-insensitive match on name or description.
+
+    Args:
+        skip: Number of rows to offset.
+        limit: Maximum number of rows to return.
+        search: If provided, filters by case-insensitive match on `name` or `description`.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        List of `Resource` ORM instances.
+    """
+    query = db.query(models.Resource)
+
+    if search:
+        search_filter = f"%{search}%"
+        query = query.filter(
+            or_(
+                models.Resource.name.ilike(search_filter),
+                models.Resource.description.ilike(search_filter),
+            )
+        )
+
+    return query.offset(skip).limit(limit).all()
+
+
+@app.put("/resources/{resource_id}", response_model=schemas.ResourceRead)
+def update_resource(
+    resource_id: int,
+    resource_update: schemas.ResourceUpdate,
+    db: Session = Depends(get_db),
+) -> models.Resource:
+    """Partially update a resource's fields.
+
+    Args:
+        resource_id: Primary key of the resource to update.
+        resource_update: Partial update payload; all fields are optional.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        The updated `Resource` ORM instance, serialized as `ResourceRead`.
+
+    Raises:
+        HTTPException (404): If no resource with `resource_id` exists in the database.
+        HTTPException (409): If the updated URL collides with another resource's URL.
+    """
+    db_resource = (
+        db.query(models.Resource).filter(models.Resource.id == resource_id).first()
+    )
+
+    if not db_resource:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Resource with ID {resource_id} not found!"
+        )
+
+    update_data = resource_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_resource, key, value)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A resource with this URL already exists."
+        )
+    db.refresh(db_resource)
+    return db_resource
+
+
+@app.delete("/resources/{resource_id}", status_code=204)
+def delete_resource(resource_id: int, db: Session = Depends(get_db)):
+    """
+    Remove a resource from the database by its ID.
+    """
+    db_resource = (
+        db.query(models.Resource).filter(models.Resource.id == resource_id).first()
+    )
+
+    if not db_resource:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Resource with ID {resource_id} not found!"
+        )
+
+    db.delete(db_resource)
+    db.commit()
+
+    return None
+
+
+@app.post("/topics/", response_model=schemas.TopicRead)
+def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)) -> models.Topic:
+    """Persist a new topic.
+
+    Args:
+        topic: Validated request body.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        The persisted `Topic` ORM instance, serialized as `TopicRead`.
+
+    Raises:
+        HTTPException (409): If a topic with the same label already exists
+                             (constraint: topics_label_key UNIQUE (label)).
+    """
+    db_topic = models.Topic(**topic.model_dump())
+    try:
+        db.add(db_topic)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A topic with this label already exists."
+        )
+    db.refresh(db_topic)
+    return db_topic
+
+
+@app.get("/topics/", response_model=list[schemas.TopicRead])
+def read_topics(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+) -> list[models.Topic]:
+    """List topics.
+
+    Args:
+        skip: Number of rows to offset.
+        limit: Maximum number of rows to return.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        List of `Topic` ORM instances.
+    """
+    return db.query(models.Topic).offset(skip).limit(limit).all()
+
+
+@app.put("/topics/{topic_id}", response_model=schemas.TopicRead)
+def update_topic(
+    topic_id: int, topic_update: schemas.TopicUpdate, db: Session = Depends(get_db)
+) -> models.Topic:
+    """Partially update a topic's fields.
+
+    Args:
+        topic_id: Primary key of the topic to update.
+        topic_update: Partial update payload; all fields are optional.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        The updated `Topic` ORM instance, serialized as `TopicRead`.
+
+    Raises:
+        HTTPException (404): If no topic with `topic_id` exists in the database.
+        HTTPException (409): If the updated label collides with another topic's label.
+    """
+    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+
+    if not db_topic:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Topic with ID {topic_id} not found!"
+        )
+
+    update_data = topic_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_topic, key, value)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A topic with this label already exists."
+        )
+    db.refresh(db_topic)
+    return db_topic
+
+
+@app.delete("/topics/{topic_id}", status_code=204)
+def delete_topic(topic_id: int, db: Session = Depends(get_db)):
+    """
+    Remove a topic from the database by its ID.
+    """
+    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+
+    if not db_topic:
+        raise HTTPException(
+            status_code=404, detail=f"🚨 Topic with ID {topic_id} not found!"
+        )
+
+    db.delete(db_topic)
+    db.commit()
+
+    return None

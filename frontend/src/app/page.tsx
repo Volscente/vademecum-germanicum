@@ -1,12 +1,17 @@
 "use client"; // The page uses React hooks (UseState and UseEffect) -> User Component
 
+import AddResourceModal from "@/components/AddResourceModal";
+import AddTopicModal from "@/components/AddTopicModal";
 import AddWordModal from "@/components/AddWordModal";
 import AreaToggle from "@/components/AreaToggle";
+import ResourceTable from "@/components/ResourceTable";
 import ReviewArea from "@/components/ReviewArea";
 import SearchBar from "@/components/SearchBar";
 import SensesTable from "@/components/SensesTable";
 import ThemeToggle from "@/components/ThemeToggle";
+import TopicList from "@/components/TopicList";
 import WordTable from "@/components/WordTable";
+import { Resource, Topic } from "@/types/resource";
 import { SenseWithWord, Word } from "@/types/word";
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,10 +22,15 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // 2. Area State Management: 'area' controls the active view, 'reviewQueue' holds senses selected for review
-  const [area, setArea] = useState<"vocabulary" | "learning" | "review">(
-    "vocabulary",
-  );
+  const [area, setArea] = useState<
+    "vocabulary" | "learning" | "review" | "resources"
+  >("vocabulary");
   const [reviewQueue, setReviewQueue] = useState<SenseWithWord[]>([]);
+
+  // 2b. Resources State Management: 'resources'/'topics' store the lists, 'resourceSearchTerm' filters resources
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [resourceSearchTerm, setResourceSearchTerm] = useState("");
 
   // 3. Data Fetching: Request words from the FastAPI backend service, including search
   const fetchWords = useCallback(async (searchQuery: string = "") => {
@@ -46,6 +56,40 @@ export default function Home() {
   useEffect(() => {
     fetchWords(searchTerm);
   }, [searchTerm, fetchWords]);
+
+  // 4b. Resources/Topics Data Fetching: Request from the FastAPI backend service, including search for resources
+  const fetchResources = useCallback(async (searchQuery: string = "") => {
+    try {
+      const baseUrl = "http://localhost:8000/resources/";
+      const url = searchQuery
+        ? `${baseUrl}?search=${encodeURIComponent(searchQuery)}`
+        : baseUrl;
+
+      const response = await fetch(url);
+      const data = await response.json();
+      setResources(data);
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+    }
+  }, []);
+
+  const fetchTopics = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:8000/topics/");
+      const data = await response.json();
+      setTopics(data);
+    } catch (error) {
+      console.error("Error fetching topics:", error);
+    }
+  }, []);
+
+  // 4c. Effect Hook: Trigger fetch when the Resources area becomes active or its search term changes
+  useEffect(() => {
+    if (area === "resources") {
+      fetchResources(resourceSearchTerm);
+      fetchTopics();
+    }
+  }, [area, resourceSearchTerm, fetchResources, fetchTopics]);
 
   // 5. Review Handler: sets the review queue and transitions to the Review Area
   function handleStartReview(selected: SenseWithWord[]): void {
@@ -187,6 +231,59 @@ export default function Home() {
             reviewQueue={reviewQueue}
             onNavigate={(target) => setArea(target)}
           />
+        )}
+
+        {area === "resources" && (
+          <div className="space-y-8">
+            {/* Resources section */}
+            <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-forest-900 dark:text-forest-50">
+                  Resources
+                </h2>
+                <AddResourceModal
+                  onResourceAdded={() => fetchResources(resourceSearchTerm)}
+                />
+              </div>
+              <div className="mb-4">
+                <SearchBar
+                  onSearch={setResourceSearchTerm}
+                  placeholder="Search resources..."
+                />
+              </div>
+              {resources.length === 0 ? (
+                <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
+                  No resources yet.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <ResourceTable
+                    resources={resources}
+                    onRefresh={() => fetchResources(resourceSearchTerm)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Topics section */}
+            <div className="bg-white dark:bg-forest-800 rounded-xl shadow-sm border border-forest-200 dark:border-forest-700 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-forest-900 dark:text-forest-50">
+                  Topics
+                </h2>
+                <AddTopicModal onTopicAdded={fetchTopics} />
+              </div>
+              {topics.length === 0 ? (
+                <p className="text-center py-10 text-forest-600 dark:text-forest-300 italic">
+                  No topics yet.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <TopicList topics={topics} onRefresh={fetchTopics} />
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </main>

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.14] - 2026-08-27
+
+### Added
+
+- **Backend**: New `Resource` and `Topic` models/tables with full CRUD (`POST/GET/PUT/DELETE /resources/`, `POST/GET/PUT/DELETE /topics/`). Resource `url` and Topic `label` each enforce a unique constraint (`resources_url_key`, `topics_label_key`), returning HTTP 409 on duplicates, mirroring the existing `words_word_key` pattern.
+- **Frontend**: New "Resources" tab (`AreaToggle`) with two stacked sections — an external-resources list (YouTube/blog/newspaper, categorized by news/politics/science/culture & lifestyle, linked out by name in a new tab) and a flat topics list — each with add/edit/delete modals.
+
 ## [0.4.13] - 2026-08-21
 
 ### Changed

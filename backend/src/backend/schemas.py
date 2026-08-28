@@ -7,7 +7,15 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .models import CaseEnum, CategoryEnum, DifficultyLevelEnum, GenderEnum, RegisterEnum
+from .models import (
+    CaseEnum,
+    CategoryEnum,
+    DifficultyLevelEnum,
+    GenderEnum,
+    RegisterEnum,
+    ResourceCategoryEnum,
+    ResourceTypeEnum,
+)
 
 
 class GrammarPatternCreate(BaseModel):
@@ -118,3 +126,77 @@ class WordUpdate(WordBase):
     word: Optional[str] = None
     translation: Optional[str] = None
     senses: Optional[list[SenseCreate]] = None
+
+
+class ResourceBase(BaseModel):
+    """
+    Base resource model for Data Transfer Objects (DTO) approach.
+    """
+
+    name: str
+    resource_type: ResourceTypeEnum
+    url: str
+    description: Optional[str] = None
+    category: ResourceCategoryEnum
+
+
+class ResourceCreate(ResourceBase):
+    """
+    Input model: data used to create a resource.
+    """
+
+
+class ResourceRead(ResourceBase):
+    """
+    Output model: data used to retrieve a resource.
+    """
+
+    id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResourceUpdate(BaseModel):
+    """
+    Update model: data used to edit a resource.
+    """
+
+    name: Optional[str] = None
+    resource_type: Optional[ResourceTypeEnum] = None
+    url: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[ResourceCategoryEnum] = None
+
+
+class TopicBase(BaseModel):
+    """
+    Base topic model for Data Transfer Objects (DTO) approach.
+    """
+
+    label: str
+
+
+class TopicCreate(TopicBase):
+    """
+    Input model: data used to create a topic.
+    """
+
+
+class TopicRead(TopicBase):
+    """
+    Output model: data used to retrieve a topic.
+    """
+
+    id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TopicUpdate(BaseModel):
+    """
+    Update model: data used to edit a topic.
+    """
+
+    label: Optional[str] = None

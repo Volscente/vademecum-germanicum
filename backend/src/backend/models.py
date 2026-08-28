@@ -66,6 +66,27 @@ class DifficultyLevelEnum(str, enum.Enum):
     VeryHard = "VeryHard"
 
 
+class ResourceTypeEnum(str, enum.Enum):
+    """
+    Type of external learning resource, driving which icon is shown.
+    """
+
+    youtube = "youtube"
+    blog = "blog"
+    newspaper = "newspaper"
+
+
+class ResourceCategoryEnum(str, enum.Enum):
+    """
+    Topical category of an external learning resource.
+    """
+
+    news = "news"
+    politics = "politics"
+    science = "science"
+    culture_lifestyle = "culture_lifestyle"
+
+
 class ExampleSentence(Base):
     """
     A German example sentence with its English translation, belonging to a Sense.
@@ -158,3 +179,33 @@ class Word(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     senses = relationship("Sense", back_populates="word", cascade="all, delete-orphan")
+
+
+class Resource(Base):
+    """
+    An external learning resource (YouTube channel, blog, newspaper).
+    """
+
+    __tablename__ = "resources"
+    __table_args__ = (UniqueConstraint("url", name="resources_url_key"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    resource_type = Column(Enum(ResourceTypeEnum), nullable=False)
+    url = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    category = Column(Enum(ResourceCategoryEnum), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Topic(Base):
+    """
+    A subject the user practices German with (e.g. "Krankenkassenreform 2026").
+    """
+
+    __tablename__ = "topics"
+    __table_args__ = (UniqueConstraint("label", name="topics_label_key"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    label = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
