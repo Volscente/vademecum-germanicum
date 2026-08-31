@@ -14,9 +14,9 @@ export default function TopicList({ topics, onRefresh }: TopicListProps) {
 
   return (
     <>
-      <div className="overflow-hidden shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
+      <div className="max-h-[600px] overflow-y-auto shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
         <table className="min-w-full divide-y divide-forest-200 dark:divide-forest-700">
-          <thead className="bg-forest-50 dark:bg-forest-800">
+          <thead className="sticky top-0 z-10 bg-forest-50 dark:bg-forest-800">
             <tr>
               <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-forest-900 dark:text-forest-100">
                 Topic

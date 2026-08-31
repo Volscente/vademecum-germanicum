@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import or_
@@ -22,6 +22,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Total-Count"],
 )
 
 
@@ -213,6 +214,7 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)) -> mode
 
 @app.get("/words/", response_model=list[schemas.WordRead])
 def read_words(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     search: str | None = None,
@@ -226,6 +228,7 @@ def read_words(
     ILIKE on `word` and `translation`.
 
     Args:
+        response: FastAPI response object, used to attach the X-Total-Count header.
         skip: Number of rows to offset.
         limit: Maximum number of rows to return.
         search: If provided, filters by case-insensitive match on `word` or `translation`.
@@ -248,6 +251,7 @@ def read_words(
             )
         )
 
+    response.headers["X-Total-Count"] = str(query.count())
     return query.offset(skip).limit(limit).all()
 
 
@@ -367,6 +371,7 @@ def create_resource(
 
 @app.get("/resources/", response_model=list[schemas.ResourceRead])
 def read_resources(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     search: str | None = None,
@@ -375,6 +380,7 @@ def read_resources(
     """List resources, optionally filtered by a case-insensitive match on name or description.
 
     Args:
+        response: FastAPI response object, used to attach the X-Total-Count header.
         skip: Number of rows to offset.
         limit: Maximum number of rows to return.
         search: If provided, filters by case-insensitive match on `name` or `description`.
@@ -393,6 +399,8 @@ def read_resources(
                 models.Resource.description.ilike(search_filter),
             )
         )
+
+    response.headers["X-Total-Count"] = str(query.count())
 
     return query.offset(skip).limit(limit).all()
 
@@ -491,11 +499,12 @@ def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)) -> m
 
 @app.get("/topics/", response_model=list[schemas.TopicRead])
 def read_topics(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+    response: Response, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ) -> list[models.Topic]:
     """List topics.
 
     Args:
+        response: FastAPI response object, used to attach the X-Total-Count header.
         skip: Number of rows to offset.
         limit: Maximum number of rows to return.
         db: SQLAlchemy session injected by FastAPI.
@@ -503,7 +512,9 @@ def read_topics(
     Returns:
         List of `Topic` ORM instances.
     """
-    return db.query(models.Topic).offset(skip).limit(limit).all()
+    query = db.query(models.Topic)
+    response.headers["X-Total-Count"] = str(query.count())
+    return query.offset(skip).limit(limit).all()
 
 
 @app.put("/topics/{topic_id}", response_model=schemas.TopicRead)

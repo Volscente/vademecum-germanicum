@@ -2,6 +2,8 @@
 
 import { getSenses } from "@/lib/api";
 import { toReview } from "@/lib/reviewUtils";
+import Pagination from "./Pagination";
+import RowsPerPageSelect from "./RowsPerPageSelect";
 import { SenseWithWord } from "@/types/word";
 import {
   BarChart2,
@@ -64,6 +66,8 @@ export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTa
   );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [rowLimit, setRowLimit] = useState<number>(25);
+  const [page, setPage] = useState(1);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -108,6 +112,23 @@ export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTa
     });
   }, [senses, sortKey, sortDir, searchTerm]);
 
+  const totalPages = Math.max(1, Math.ceil(sorted.length / rowLimit));
+
+  const visible = useMemo(
+    () => sorted.slice((page - 1) * rowLimit, page * rowLimit),
+    [sorted, rowLimit, page],
+  );
+
+  // Reset to the first page whenever the search term or page size changes.
+  // Adjusted during render (not in an effect) per React's guidance for
+  // resetting state in response to prop/state changes.
+  const pagingKey = `${searchTerm}:${rowLimit}`;
+  const [prevPagingKey, setPrevPagingKey] = useState(pagingKey);
+  if (pagingKey !== prevPagingKey) {
+    setPrevPagingKey(pagingKey);
+    setPage(1);
+  }
+
   useEffect(() => {
     getSenses()
       .then(setSenses)
@@ -150,9 +171,10 @@ export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTa
 
   return (
     <div>
-      <div className="overflow-x-auto shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
+      <RowsPerPageSelect id="senses-limit" value={rowLimit} onChange={setRowLimit} />
+      <div className="max-h-[600px] overflow-y-auto overflow-x-auto shadow ring-1 ring-forest-900/10 dark:ring-forest-100/10 sm:rounded-lg">
         <table className="min-w-full divide-y divide-forest-200 dark:divide-forest-700">
-          <thead className="bg-forest-50 dark:bg-forest-800">
+          <thead className="sticky top-0 z-10 bg-forest-50 dark:bg-forest-800">
             <tr>
               <th className="py-4 pl-4 pr-3 w-10" />
               <th
@@ -233,7 +255,7 @@ export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTa
             </tr>
           </thead>
           <tbody className="divide-y divide-forest-100 dark:divide-forest-700 bg-white dark:bg-forest-900">
-            {sorted.map((sense) => {
+            {visible.map((sense) => {
               const id = sense.id!;
               const isSelected = selectedSenseIds.has(id);
               const needsReview = toReview(sense);
@@ -298,6 +320,8 @@ export default function SensesTable({ onStartReview, searchTerm = "" }: SensesTa
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {selectedSenseIds.size > 0 && (
         <div className="mt-4 flex justify-end">

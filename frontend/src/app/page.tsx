@@ -4,8 +4,10 @@ import AddResourceModal from "@/components/AddResourceModal";
 import AddTopicModal from "@/components/AddTopicModal";
 import AddWordModal from "@/components/AddWordModal";
 import AreaToggle from "@/components/AreaToggle";
+import Pagination from "@/components/Pagination";
 import ResourceTable from "@/components/ResourceTable";
 import ReviewArea from "@/components/ReviewArea";
+import RowsPerPageSelect from "@/components/RowsPerPageSelect";
 import SearchBar from "@/components/SearchBar";
 import SensesTable from "@/components/SensesTable";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -20,6 +22,9 @@ export default function Home() {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [wordsLimit, setWordsLimit] = useState(25);
+  const [wordsPage, setWordsPage] = useState(1);
+  const [wordsTotal, setWordsTotal] = useState(0);
 
   // 2. Area State Management: 'area' controls the active view, 'reviewQueue' holds senses selected for review
   const [area, setArea] = useState<
@@ -31,57 +36,85 @@ export default function Home() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [resourceSearchTerm, setResourceSearchTerm] = useState("");
+  const [resourcesLimit, setResourcesLimit] = useState(25);
+  const [resourcesPage, setResourcesPage] = useState(1);
+  const [resourcesTotal, setResourcesTotal] = useState(0);
+  const [topicsLimit, setTopicsLimit] = useState(25);
+  const [topicsPage, setTopicsPage] = useState(1);
+  const [topicsTotal, setTopicsTotal] = useState(0);
 
   // 3. Data Fetching: Request words from the FastAPI backend service, including search
   const fetchWords = useCallback(async (searchQuery: string = "") => {
     try {
       setLoading(true);
       // Construct URL with query parameters
-      const baseUrl = "http://localhost:8000/words/";
-      const url = searchQuery
-        ? `${baseUrl}?search=${encodeURIComponent(searchQuery)}`
-        : `${baseUrl}?limit=10`;
+      const params = new URLSearchParams({
+        skip: String((wordsPage - 1) * wordsLimit),
+        limit: String(wordsLimit),
+      });
+      if (searchQuery) params.set("search", searchQuery);
 
-      const response = await fetch(url);
+      const response = await fetch(`http://localhost:8000/words/?${params}`);
       const data = await response.json();
       setWords(data);
+      setWordsTotal(Number(response.headers.get("X-Total-Count")) || 0);
     } catch (error) {
       console.error("Error fetching words:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [wordsLimit, wordsPage]);
 
-  // 4. Effect Hook: Trigger fetch whenever searchTerm changes (already debounced by component)
+  // 4. Effect Hook: Trigger fetch whenever searchTerm, wordsLimit or wordsPage changes (already debounced by component)
   useEffect(() => {
     fetchWords(searchTerm);
   }, [searchTerm, fetchWords]);
 
+  // 4a. Reset to the first page whenever the search term or page size changes.
+  // Adjusted during render (not in an effect) per React's guidance for
+  // resetting state in response to prop/state changes.
+  const wordsPagingKey = `${searchTerm}:${wordsLimit}`;
+  const [prevWordsPagingKey, setPrevWordsPagingKey] = useState(wordsPagingKey);
+  if (wordsPagingKey !== prevWordsPagingKey) {
+    setPrevWordsPagingKey(wordsPagingKey);
+    setWordsPage(1);
+  }
+
   // 4b. Resources/Topics Data Fetching: Request from the FastAPI backend service, including search for resources
   const fetchResources = useCallback(async (searchQuery: string = "") => {
     try {
-      const baseUrl = "http://localhost:8000/resources/";
-      const url = searchQuery
-        ? `${baseUrl}?search=${encodeURIComponent(searchQuery)}`
-        : baseUrl;
+      const params = new URLSearchParams({
+        skip: String((resourcesPage - 1) * resourcesLimit),
+        limit: String(resourcesLimit),
+      });
+      if (searchQuery) params.set("search", searchQuery);
 
-      const response = await fetch(url);
+      const response = await fetch(
+        `http://localhost:8000/resources/?${params}`,
+      );
       const data = await response.json();
       setResources(data);
+      setResourcesTotal(Number(response.headers.get("X-Total-Count")) || 0);
     } catch (error) {
       console.error("Error fetching resources:", error);
     }
-  }, []);
+  }, [resourcesLimit, resourcesPage]);
 
   const fetchTopics = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/topics/");
+      const params = new URLSearchParams({
+        skip: String((topicsPage - 1) * topicsLimit),
+        limit: String(topicsLimit),
+      });
+
+      const response = await fetch(`http://localhost:8000/topics/?${params}`);
       const data = await response.json();
       setTopics(data);
+      setTopicsTotal(Number(response.headers.get("X-Total-Count")) || 0);
     } catch (error) {
       console.error("Error fetching topics:", error);
     }
-  }, []);
+  }, [topicsLimit, topicsPage]);
 
   // 4c. Effect Hook: Trigger fetch when the Resources area becomes active or its search term changes
   useEffect(() => {
@@ -90,6 +123,22 @@ export default function Home() {
       fetchTopics();
     }
   }, [area, resourceSearchTerm, fetchResources, fetchTopics]);
+
+  // 4d. Reset to the first page whenever the search term or page size changes.
+  const resourcesPagingKey = `${resourceSearchTerm}:${resourcesLimit}`;
+  const [prevResourcesPagingKey, setPrevResourcesPagingKey] = useState(
+    resourcesPagingKey,
+  );
+  if (resourcesPagingKey !== prevResourcesPagingKey) {
+    setPrevResourcesPagingKey(resourcesPagingKey);
+    setResourcesPage(1);
+  }
+
+  const [prevTopicsLimit, setPrevTopicsLimit] = useState(topicsLimit);
+  if (topicsLimit !== prevTopicsLimit) {
+    setPrevTopicsLimit(topicsLimit);
+    setTopicsPage(1);
+  }
 
   // 5. Review Handler: sets the review queue and transitions to the Review Area
   function handleStartReview(selected: SenseWithWord[]): void {
@@ -213,9 +262,21 @@ export default function Home() {
                 No words found. Time to add your first one!
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <WordTable words={words} onRefresh={fetchWords} />
-              </div>
+              <>
+                <RowsPerPageSelect
+                  id="words-limit"
+                  value={wordsLimit}
+                  onChange={setWordsLimit}
+                />
+                <div className="overflow-x-auto">
+                  <WordTable words={words} onRefresh={fetchWords} />
+                </div>
+                <Pagination
+                  page={wordsPage}
+                  totalPages={Math.max(1, Math.ceil(wordsTotal / wordsLimit))}
+                  onPageChange={setWordsPage}
+                />
+              </>
             )}
           </div>
         )}
@@ -256,12 +317,27 @@ export default function Home() {
                   No resources yet.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <ResourceTable
-                    resources={resources}
-                    onRefresh={() => fetchResources(resourceSearchTerm)}
+                <>
+                  <RowsPerPageSelect
+                    id="resources-limit"
+                    value={resourcesLimit}
+                    onChange={setResourcesLimit}
                   />
-                </div>
+                  <div className="overflow-x-auto">
+                    <ResourceTable
+                      resources={resources}
+                      onRefresh={() => fetchResources(resourceSearchTerm)}
+                    />
+                  </div>
+                  <Pagination
+                    page={resourcesPage}
+                    totalPages={Math.max(
+                      1,
+                      Math.ceil(resourcesTotal / resourcesLimit),
+                    )}
+                    onPageChange={setResourcesPage}
+                  />
+                </>
               )}
             </div>
 
@@ -278,9 +354,24 @@ export default function Home() {
                   No topics yet.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <TopicList topics={topics} onRefresh={fetchTopics} />
-                </div>
+                <>
+                  <RowsPerPageSelect
+                    id="topics-limit"
+                    value={topicsLimit}
+                    onChange={setTopicsLimit}
+                  />
+                  <div className="overflow-x-auto">
+                    <TopicList topics={topics} onRefresh={fetchTopics} />
+                  </div>
+                  <Pagination
+                    page={topicsPage}
+                    totalPages={Math.max(
+                      1,
+                      Math.ceil(topicsTotal / topicsLimit),
+                    )}
+                    onPageChange={setTopicsPage}
+                  />
+                </>
               )}
             </div>
           </div>
