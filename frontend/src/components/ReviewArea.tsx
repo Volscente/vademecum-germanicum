@@ -31,7 +31,7 @@ export default function ReviewArea({ reviewQueue, onNavigate }: ReviewAreaProps)
   }
 
   function handleDifficultySelect(level: "Easy" | "Medium" | "Hard" | "VeryHard"): void {
-    void updateSenseReview(reviewQueue[currentIndex].id, level);
+    void updateSenseReview(reviewQueue[currentIndex].id!, level);
     setIsTransitioning(true);
     setTimeout(() => {
       setIsTransitioning(false);
