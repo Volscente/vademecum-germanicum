@@ -1,0 +1,44 @@
+backend/tests/test_words.py
+  s_f524d88944968e::t_0d72793a7a80cb 232-264
+frontend/package.json
+  s_f524d88944968e::t_a36ddaedd5a1ea 16
+  s_f524d88944968e::t_69c089011a0319 26
+frontend/src/lib/exportImport.ts
+  s_f524d88944968e::t_fd489d06f5884d 1-326
+frontend/src/components/ExportControl.tsx
+  s_f524d88944968e::t_fbb1ef0796bf28 1-103
+backend/src/backend/schemas.py
+  s_f524d88944968e::t_8a90b4a24ae1d9 46-47
+backend/src/backend/main.py
+  s_f524d88944968e::t_b01dc931cf9891 43-57
+frontend/src/app/page.tsx
+  s_f524d88944968e::t_41678fb4038a2f 7-8
+  s_f524d88944968e::t_730fc9d8ff88a2 230-234
+justfile
+  h_68a16e6033d539 52,109,120
+frontend/src/components/ImportModal.tsx
+  s_f524d88944968e::t_c1089fa4e05b94 1-273
+frontend/package-lock.json
+  s_f524d88944968e::t_62f1d772e67cdc 3,9,15,25,1584-1593,5325-5330
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "eb823b2e0a90e3c9b347a166460c4938b4d5edf0",
+  "prompts": {},
+  "humans": {
+    "h_68a16e6033d539": {
+      "author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_f524d88944968e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcf2d709-68af-4ccb-8987-79f65e2adc43",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
