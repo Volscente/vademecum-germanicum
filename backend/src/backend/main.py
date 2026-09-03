@@ -1,12 +1,14 @@
+import os
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, selectinload
 
-from . import models, schemas
+from . import auth, models, schemas
 from .database import engine, get_db
 from .enrichment import WordEnrichment, enrich_word
 
@@ -16,9 +18,10 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Vademecum Germanicum API")
 
 # Add Middleware to allow communication between Frontend and Backend
+cors_allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend port
+    allow_origins=cors_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,8 +74,79 @@ def read_root():
     return {"message": "Willkommen! The API is alive and connected to DB."}
 
 
+@app.post("/auth/register", response_model=schemas.Token)
+def register(user: schemas.UserCreate, db: Session = Depends(get_db)) -> schemas.Token:
+    """Create a new account, restricted to the ALLOWED_USERNAMES allow-list.
+
+    Args:
+        user: Validated request body (username, plaintext password).
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        A bearer token for the new account, so the caller is immediately logged in.
+
+    Raises:
+        HTTPException (403): If the username is not on the allow-list.
+        HTTPException (409): If the username already exists
+                             (constraint: users_username_key UNIQUE (username)).
+    """
+    if user.username not in auth.get_allowed_usernames():
+        raise HTTPException(status_code=403, detail="This app is invite-only.")
+
+    db_user = models.User(
+        username=user.username, hashed_password=auth.hash_password(user.password)
+    )
+    try:
+        db.add(db_user)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="A user with this username already exists."
+        )
+
+    access_token = auth.create_access_token({"sub": db_user.username})
+    return schemas.Token(access_token=access_token)
+
+
+@app.post("/auth/login", response_model=schemas.Token)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+) -> schemas.Token:
+    """Verify credentials and issue a bearer token.
+
+    Uses OAuth2PasswordRequestForm (form-encoded, not JSON) so the built-in
+    Swagger /docs "Authorize" button works with zero extra code.
+
+    Args:
+        form_data: Form-encoded username/password.
+        db: SQLAlchemy session injected by FastAPI.
+
+    Returns:
+        A bearer token for the authenticated account.
+
+    Raises:
+        HTTPException (401): If the username is unknown or the password is wrong.
+    """
+    db_user = (
+        db.query(models.User).filter(models.User.username == form_data.username).first()
+    )
+    if not db_user or not auth.verify_password(form_data.password, db_user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token = auth.create_access_token({"sub": db_user.username})
+    return schemas.Token(access_token=access_token)
+
+
 @app.get("/senses/", response_model=list[schemas.SenseWithWordRead])
-def read_senses(db: Session = Depends(get_db)) -> list[schemas.SenseWithWordRead]:
+def read_senses(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+) -> list[schemas.SenseWithWordRead]:
     """Return all senses with their parent word's key fields embedded.
 
     Joins Sense with Word to include word, translation, gender, and category
@@ -88,6 +162,8 @@ def read_senses(db: Session = Depends(get_db)) -> list[schemas.SenseWithWordRead
     """
     senses = (
         db.query(models.Sense)
+        .join(models.Word, models.Sense.word_id == models.Word.id)
+        .filter(models.Word.user_id == current_user.id)
         .options(
             selectinload(models.Sense.word),
             selectinload(models.Sense.grammar_patterns),
@@ -121,6 +197,7 @@ def update_sense_review(
     sense_id: int,
     review_update: schemas.SenseReviewUpdate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> models.Sense:
     """Validate difficulty level, stamp last_reviewed_at, and persist the update.
 
@@ -143,11 +220,12 @@ def update_sense_review(
     """
     db_sense = (
         db.query(models.Sense)
+        .join(models.Word, models.Sense.word_id == models.Word.id)
         .options(
             selectinload(models.Sense.grammar_patterns),
             selectinload(models.Sense.example_sentences),
         )
-        .filter(models.Sense.id == sense_id)
+        .filter(models.Sense.id == sense_id, models.Word.user_id == current_user.id)
         .first()
     )
 
@@ -166,6 +244,7 @@ def update_sense_review(
 @app.post("/words/enrich", response_model=WordEnrichment)
 async def enrich_word_endpoint(
     request: schemas.WordEnrichRequest,
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> WordEnrichment:
     """Enrich a German word via LLM and return structured metadata.
 
@@ -185,7 +264,11 @@ async def enrich_word_endpoint(
 
 
 @app.post("/words/", response_model=schemas.WordRead)
-def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)) -> models.Word:
+def create_word(
+    word: schemas.WordCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+) -> models.Word:
     """Persist a new word with its full sense graph in a single transaction.
 
     Builds a `Word` ORM instance from the validated `WordCreate` body, then
@@ -202,12 +285,14 @@ def create_word(word: schemas.WordCreate, db: Session = Depends(get_db)) -> mode
         The persisted `Word` ORM instance, serialized as `WordRead` by FastAPI.
 
     Raises:
-        HTTPException (409): If the word value already exists in the `words` table
-                             (constraint: words_word_key UNIQUE (word)).
+        HTTPException (409): If the word value already exists for this user
+                             (constraint: words_user_id_word_key UNIQUE (user_id, word)).
         HTTPException (422): Raised automatically by FastAPI/Pydantic if
                              validation constraints are violated (e.g., empty senses list).
     """
-    db_word = models.Word(**word.model_dump(exclude={"senses"}))
+    db_word = models.Word(
+        **word.model_dump(exclude={"senses"}), user_id=current_user.id
+    )
     for sense_data in word.senses:
         db_word.senses.append(_build_sense_orm(sense_data))
 
@@ -229,6 +314,7 @@ def read_words(
     limit: int = 100,
     search: str | None = None,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> list[models.Word]:
     """List words with their full sense graph, avoiding N+1 queries.
 
@@ -247,9 +333,13 @@ def read_words(
     Returns:
         List of `Word` ORM instances with sense children pre-loaded.
     """
-    query = db.query(models.Word).options(
-        selectinload(models.Word.senses).selectinload(models.Sense.grammar_patterns),
-        selectinload(models.Word.senses).selectinload(models.Sense.example_sentences),
+    query = (
+        db.query(models.Word)
+        .filter(models.Word.user_id == current_user.id)
+        .options(
+            selectinload(models.Word.senses).selectinload(models.Sense.grammar_patterns),
+            selectinload(models.Word.senses).selectinload(models.Sense.example_sentences),
+        )
     )
 
     if search:
@@ -267,7 +357,10 @@ def read_words(
 
 @app.put("/words/{word_id}", response_model=schemas.WordRead)
 def update_word(
-    word_id: int, word_update: schemas.WordUpdate, db: Session = Depends(get_db)
+    word_id: int,
+    word_update: schemas.WordUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> models.Word:
     """Partially update a word's scalar fields and optionally replace its sense list.
 
@@ -288,7 +381,11 @@ def update_word(
         HTTPException (404): If no word with `word_id` exists in the database.
         HTTPException (400): If `word`, when provided, is an empty or whitespace-only string.
     """
-    db_word = db.query(models.Word).filter(models.Word.id == word_id).first()
+    db_word = (
+        db.query(models.Word)
+        .filter(models.Word.id == word_id, models.Word.user_id == current_user.id)
+        .first()
+    )
 
     if not db_word:
         raise HTTPException(
@@ -327,13 +424,21 @@ def update_word(
 
 
 @app.delete("/words/{word_id}", status_code=204)
-def delete_word(word_id: int, db: Session = Depends(get_db)):
+def delete_word(
+    word_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     """
     Remove a word from the database by its ID.
     """
 
     # Retrieve word from db to be deleted
-    db_word = db.query(models.Word).filter(models.Word.id == word_id).first()
+    db_word = (
+        db.query(models.Word)
+        .filter(models.Word.id == word_id, models.Word.user_id == current_user.id)
+        .first()
+    )
 
     # Check if word is in the db
     if not db_word:
@@ -351,7 +456,9 @@ def delete_word(word_id: int, db: Session = Depends(get_db)):
 
 @app.post("/resources/", response_model=schemas.ResourceRead)
 def create_resource(
-    resource: schemas.ResourceCreate, db: Session = Depends(get_db)
+    resource: schemas.ResourceCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> models.Resource:
     """Persist a new external learning resource.
 
@@ -363,10 +470,11 @@ def create_resource(
         The persisted `Resource` ORM instance, serialized as `ResourceRead`.
 
     Raises:
-        HTTPException (409): If a resource with the same URL already exists
-                             (constraint: resources_url_key UNIQUE (url)).
+        HTTPException (409): If a resource with the same URL already exists for
+                             this user (constraint: resources_user_id_url_key
+                             UNIQUE (user_id, url)).
     """
-    db_resource = models.Resource(**resource.model_dump())
+    db_resource = models.Resource(**resource.model_dump(), user_id=current_user.id)
     try:
         db.add(db_resource)
         db.commit()

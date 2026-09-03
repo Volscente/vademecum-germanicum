@@ -87,6 +87,26 @@ class ResourceCategoryEnum(str, enum.Enum):
     culture_lifestyle = "culture_lifestyle"
 
 
+class User(Base):
+    """
+    An account holder. Every Word/Resource/Topic belongs to exactly one User.
+    """
+
+    __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("username", name="users_username_key"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    words = relationship("Word", back_populates="user", cascade="all, delete-orphan")
+    resources = relationship(
+        "Resource", back_populates="user", cascade="all, delete-orphan"
+    )
+    topics = relationship("Topic", back_populates="user", cascade="all, delete-orphan")
+
+
 class ExampleSentence(Base):
     """
     A German example sentence with its English translation, belonging to a Sense.
@@ -150,9 +170,12 @@ class Word(Base):
     """
 
     __tablename__ = "words"
-    __table_args__ = (UniqueConstraint("word", name="words_word_key"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "word", name="words_user_id_word_key"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     # Basic word
     word = Column(String, nullable=False, index=True)
@@ -179,6 +202,7 @@ class Word(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     senses = relationship("Sense", back_populates="word", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="words")
 
 
 class Resource(Base):
@@ -187,15 +211,20 @@ class Resource(Base):
     """
 
     __tablename__ = "resources"
-    __table_args__ = (UniqueConstraint("url", name="resources_url_key"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "url", name="resources_user_id_url_key"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
     resource_type = Column(Enum(ResourceTypeEnum), nullable=False)
     url = Column(String, nullable=False)
     description = Column(String, nullable=True)
     category = Column(Enum(ResourceCategoryEnum), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="resources")
 
 
 class Topic(Base):
@@ -204,8 +233,13 @@ class Topic(Base):
     """
 
     __tablename__ = "topics"
-    __table_args__ = (UniqueConstraint("label", name="topics_label_key"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "label", name="topics_user_id_label_key"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     label = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="topics")
