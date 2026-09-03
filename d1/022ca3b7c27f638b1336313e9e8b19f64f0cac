@@ -1,0 +1,95 @@
+frontend/src/components/AddResourceModal.tsx
+  s_f524d88944968e::t_0099fc6e7dc41f 1
+  s_f524d88944968e::t_9bcbb61e9f5f58 43
+frontend/src/app/login/page.tsx
+  s_f524d88944968e::t_83e988a6ae9d00 1-135
+backend/tests/test_auth.py
+  s_f524d88944968e::t_9165e89a92083e 1-129
+frontend/src/components/AddWordModal.tsx
+  s_f524d88944968e::t_25fb74c95d8a8b 2
+  s_f524d88944968e::t_85122e476b665e 100
+frontend/src/components/LogoutButton.tsx
+  s_f524d88944968e::t_61385b1676a7cc 1-24
+backend/Dockerfile
+  s_f524d88944968e::t_41f10220e4c1f3 36-38
+frontend/src/lib/api.ts
+  s_f524d88944968e::t_f7bc3563056385 5,15,34,58-61,82,115-116,139,167-170,190-192,207,235,258
+backend/tests/test_words.py
+  s_f524d88944968e::t_0e99b06903d58a 6,10,18,22,30,35,38,44,50,55,60,77,87,91,95,100,104,108,113,117,121,126,133,141,146,150,167,171,186,190,195,201,206,211,215,222,226-227,232,246,253,258,265,275-276
+.env.example
+  s_f524d88944968e::t_f7dcf509f21cd8 15-23
+docker-compose.yml
+  s_f524d88944968e::t_4999eb58ce8d5c 24-26
+DEPLOYMENT.md
+  s_f524d88944968e::t_cd56c8c92b5602 1-59
+frontend/src/lib/apiClient.ts
+  s_f524d88944968e::t_88afaa6ed6bd0e 1-49
+frontend/src/lib/authSchema.ts
+  s_f524d88944968e::t_383f7f80e041fc 1-9
+backend/src/backend/auth.py
+  s_f524d88944968e::t_ced22bfebbe1d6 29
+  s_f524d88944968e::t_38f0b356d0da13 14
+backend/pyproject.toml
+  s_f524d88944968e::t_54b6070eeef7d4 13,15
+backend/tests/fixtures/auth.py
+  s_f524d88944968e::t_61203df7499d60 1-37
+backend/tests/test_senses.py
+  s_f524d88944968e::t_0e99b06903d58a 6,11-12,26,30,35,41,44,54,58,61,68,72
+backend/tests/test_enrichment.py
+  s_f524d88944968e::t_0e99b06903d58a 44,51,69,71,75,77,81,90,96,133,144,177
+frontend/src/lib/exportImport.ts
+  s_f524d88944968e::t_0dfc3b3ab52afa 220,225
+  s_f524d88944968e::t_a4b8c638eb3bf3 3
+  s_f524d88944968e::t_bb125aed2bd144 301
+frontend/src/app/page.tsx
+  s_f524d88944968e::t_2ca967ed466eab 109
+  s_f524d88944968e::t_33ddf58593963c 254
+  s_f524d88944968e::t_b559ce04677081 6,10,22,26-37
+  s_f524d88944968e::t_cc36cf73e0d575 125
+  s_f524d88944968e::t_d65d8926faf189 164-167
+  s_f524d88944968e::t_037f9599b9f980 74
+backend/tests/test_resources.py
+  s_f524d88944968e::t_0e99b06903d58a 6,10,18,22-23,30,34,36,41,45,50,54,57,66,70,74,78,81,84,89,93,97,101-102,108,113-114,117
+backend/tests/fixtures/database_management.py
+  s_f524d88944968e::t_773b1ad02248d4 23-48,50-69
+backend/src/backend/main.py
+  s_f524d88944968e::t_36f6a7916ad53d 665-668
+  s_f524d88944968e::t_c8f30799649d39 711-715,719-723
+  s_f524d88944968e::t_6c10eab0cb949f 497
+  s_f524d88944968e::t_2774196236db2b 549-554
+  s_f524d88944968e::t_00cfc39a22ecc3 578-582,587-592
+  s_f524d88944968e::t_d1895e53b04047 684-688
+  s_f524d88944968e::t_62376dbb5d5dd0 532
+  s_f524d88944968e::t_125ee0f27a0cc2 607-611,622-624,626
+  s_f524d88944968e::t_3d47f037fd1d1f 641-645,658
+  s_f524d88944968e::t_316ca0d9437a91 511
+frontend/src/components/EditWordModal.tsx
+  s_f524d88944968e::t_142aae04c68c3f 2
+  s_f524d88944968e::t_4dfd70d990f347 154
+frontend/src/components/AddTopicModal.tsx
+  s_f524d88944968e::t_87535e2b766223 1
+  s_f524d88944968e::t_3ff235f122bda5 35
+backend/tests/conftest.py
+  s_f524d88944968e::t_635ebe361f56f7 10
+  s_f524d88944968e::t_af5eb1953422fb 5-9,11-12,18
+backend/tests/test_topics.py
+  s_f524d88944968e::t_0e99b06903d58a 6,10,16,20-21,28,32,35,40,44,48,52,55,58,63,67,71,75-76,82,87-88,91
+uv.lock
+  s_f524d88944968e::t_7098565e42164b 206,213,215,228,230,237-302,702,1942-1955,2874
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d1022ca3b7c27f638b1336313e9e8b19f64f0cac",
+  "prompts": {},
+  "sessions": {
+    "s_f524d88944968e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcf2d709-68af-4ccb-8987-79f65e2adc43",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
