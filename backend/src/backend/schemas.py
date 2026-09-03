@@ -43,6 +43,8 @@ class ExampleSentenceRead(ExampleSentenceCreate):
 class SenseCreate(BaseModel):
     meaning_summary: str
     register: RegisterEnum
+    difficulty_level: Optional[DifficultyLevelEnum] = None
+    last_reviewed_at: Optional[datetime] = None
     grammar_patterns: list[GrammarPatternCreate] = Field(min_length=1)
     example_sentences: list[ExampleSentenceCreate] = Field(min_length=1)
 

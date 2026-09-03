@@ -229,6 +229,39 @@ def test_create_word_duplicate_returns_409(client, valid_word_payload):
     assert response.json()["detail"] == "A word with this spelling already exists."
 
 
+def test_create_word_with_provided_review_state(client, valid_word_payload):
+    """
+    Ensure a sense created with an explicit difficulty_level/last_reviewed_at
+    (e.g. restored from a data import) persists those values instead of the
+    default Medium/None.
+    """
+    payload = {**valid_word_payload}
+    payload["senses"] = [
+        {
+            **valid_word_payload["senses"][0],
+            "difficulty_level": "Hard",
+            "last_reviewed_at": "2026-01-15T10:00:00Z",
+        }
+    ]
+    response = client.post("/words/", json=payload)
+    assert response.status_code == 200
+    sense = response.json()["senses"][0]
+    assert sense["difficulty_level"] == "Hard"
+    assert sense["last_reviewed_at"] is not None
+
+
+def test_create_word_without_review_state_defaults(client, valid_word_payload):
+    """
+    Ensure omitting difficulty_level/last_reviewed_at still defaults to
+    Medium/None, preserving existing behavior for the normal Add Word flow.
+    """
+    response = client.post("/words/", json=valid_word_payload)
+    assert response.status_code == 200
+    sense = response.json()["senses"][0]
+    assert sense["difficulty_level"] == "Medium"
+    assert sense["last_reviewed_at"] is None
+
+
 def test_create_word_case_sensitive_duplicate(client, valid_word_payload):
     """
     Ensure that words differing only in capitalisation are treated as distinct entries.

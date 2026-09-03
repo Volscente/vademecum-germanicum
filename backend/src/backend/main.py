@@ -40,11 +40,21 @@ def _load_word_with_senses(db: Session, word_id: int) -> models.Word | None:
 
 
 def _build_sense_orm(sense_data: schemas.SenseCreate) -> models.Sense:
-    """Construct a Sense ORM instance with its grammar patterns and example sentences."""
-    db_sense = models.Sense(
-        meaning_summary=sense_data.meaning_summary,
-        register=sense_data.register,
-    )
+    """Construct a Sense ORM instance with its grammar patterns and example sentences.
+
+    difficulty_level/last_reviewed_at are only set when provided (e.g. by a data
+    import restoring prior review state) — leaving them unset lets the column
+    default (difficulty_level=Medium, last_reviewed_at=NULL) apply as before.
+    """
+    sense_kwargs = {
+        "meaning_summary": sense_data.meaning_summary,
+        "register": sense_data.register,
+    }
+    if sense_data.difficulty_level is not None:
+        sense_kwargs["difficulty_level"] = sense_data.difficulty_level
+    if sense_data.last_reviewed_at is not None:
+        sense_kwargs["last_reviewed_at"] = sense_data.last_reviewed_at
+    db_sense = models.Sense(**sense_kwargs)
     for gp in sense_data.grammar_patterns:
         db_sense.grammar_patterns.append(
             models.GrammarPattern(preposition=gp.preposition, case=gp.case)

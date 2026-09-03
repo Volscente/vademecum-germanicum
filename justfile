@@ -49,10 +49,11 @@ psql:
 
 # Apply a SQL migration to the running PostgreSQL container
 # Usage: just run_migration <path/to/migration.sql>
+
 # Example: just run_migration migrations/add_unique_word_constraint.sql
 run_migration file: check_root
     docker-compose exec -T db psql -U $POSTGRES_USER -d $POSTGRES_DB \
-        -f /dev/stdin < {{file}}
+        -f /dev/stdin < {{ file }}
 
 # Empty the words table — use before applying enum changes that break existing data (DESTRUCTIVE)
 empty_words: check_root
@@ -105,7 +106,7 @@ stop_frontend:
 # =============================================================================
 
 # Run backend + frontend and open browser
-dev: check_root
+run_stack: check_root
     #!/usr/bin/env bash
     set -e
     docker-compose stop
@@ -116,4 +117,4 @@ dev: check_root
     wait
 
 # Stop the full stack: docker-compose services + frontend dev server
-stop: stop_backend_stack stop_frontend
+stop_stack: stop_backend_stack stop_frontend

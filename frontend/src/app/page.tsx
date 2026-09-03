@@ -4,6 +4,8 @@ import AddResourceModal from "@/components/AddResourceModal";
 import AddTopicModal from "@/components/AddTopicModal";
 import AddWordModal from "@/components/AddWordModal";
 import AreaToggle from "@/components/AreaToggle";
+import ExportControl from "@/components/ExportControl";
+import ImportModal from "@/components/ImportModal";
 import Pagination from "@/components/Pagination";
 import ResourceTable from "@/components/ResourceTable";
 import ReviewArea from "@/components/ReviewArea";
@@ -225,6 +227,11 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            <ExportControl />
+            <ImportModal
+              onWordsImported={() => fetchWords(searchTerm)}
+              onResourcesImported={() => fetchResources(resourceSearchTerm)}
+            />
             {/* Pass fetchWords so the modal can refresh the table after adding a new word */}
             <AddWordModal onWordAdded={() => fetchWords(searchTerm)} />
           </div>
