@@ -3,9 +3,11 @@
 import AddResourceModal from "@/components/AddResourceModal";
 import AddTopicModal from "@/components/AddTopicModal";
 import AddWordModal from "@/components/AddWordModal";
+import { apiFetch, getToken } from "@/lib/apiClient";
 import AreaToggle from "@/components/AreaToggle";
 import ExportControl from "@/components/ExportControl";
 import ImportModal from "@/components/ImportModal";
+import LogoutButton from "@/components/LogoutButton";
 import Pagination from "@/components/Pagination";
 import ResourceTable from "@/components/ResourceTable";
 import ReviewArea from "@/components/ReviewArea";
@@ -17,9 +19,22 @@ import TopicList from "@/components/TopicList";
 import WordTable from "@/components/WordTable";
 import { Resource, Topic } from "@/types/resource";
 import { SenseWithWord, Word } from "@/types/word";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Home() {
+  // 0. Route guard: redirect to /login when there's no stored auth token.
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!getToken()) {
+      router.push("/login");
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
+
   // 1. State Management: 'words' stores the data, 'loading' handles the UI spinner while the words are loaded from DB, 'searchTerm' used for searching words
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +71,7 @@ export default function Home() {
       });
       if (searchQuery) params.set("search", searchQuery);
 
-      const response = await fetch(`http://localhost:8000/words/?${params}`);
+      const response = await apiFetch(`/words/?${params}`);
       const data = await response.json();
       setWords(data);
       setWordsTotal(Number(response.headers.get("X-Total-Count")) || 0);
@@ -91,9 +106,7 @@ export default function Home() {
       });
       if (searchQuery) params.set("search", searchQuery);
 
-      const response = await fetch(
-        `http://localhost:8000/resources/?${params}`,
-      );
+      const response = await apiFetch(`/resources/?${params}`);
       const data = await response.json();
       setResources(data);
       setResourcesTotal(Number(response.headers.get("X-Total-Count")) || 0);
@@ -109,7 +122,7 @@ export default function Home() {
         limit: String(topicsLimit),
       });
 
-      const response = await fetch(`http://localhost:8000/topics/?${params}`);
+      const response = await apiFetch(`/topics/?${params}`);
       const data = await response.json();
       setTopics(data);
       setTopicsTotal(Number(response.headers.get("X-Total-Count")) || 0);
@@ -147,6 +160,10 @@ export default function Home() {
     setReviewQueue(selected);
     setArea("review");
   }
+
+  // Render nothing until the auth check above resolves (avoids a flash of
+  // data before the redirect-to-/login kicks in for anonymous visitors).
+  if (!authChecked) return null;
 
   return (
     <main className="min-h-screen bg-forest-50 dark:bg-forest-900 p-8">
@@ -234,6 +251,7 @@ export default function Home() {
             />
             {/* Pass fetchWords so the modal can refresh the table after adding a new word */}
             <AddWordModal onWordAdded={() => fetchWords(searchTerm)} />
+            <LogoutButton />
           </div>
         </div>
 

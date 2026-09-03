@@ -1,12 +1,11 @@
 // frontend/src/lib/exportImport.ts
 // Pure export/import logic for backing up and restoring Vocabulary + Resources.
+import { apiFetch } from "@/lib/apiClient";
 import { ResourceFormValues, resourceSchema } from "@/lib/resourceSchema";
 import { Resource } from "@/types/resource";
 import { Word } from "@/types/word";
 import Papa from "papaparse";
 import { z } from "zod";
-
-const API_BASE_URL = "http://localhost:8000";
 
 export const WORDS_CSV_HEADERS = [
   "id",
@@ -218,12 +217,12 @@ export function downloadBlob(filename: string, content: string, mime: string): v
 }
 
 export async function fetchAllWords(): Promise<Word[]> {
-  const response = await fetch(`${API_BASE_URL}/words/?limit=100000`);
+  const response = await apiFetch("/words/?limit=100000");
   return response.json();
 }
 
 export async function fetchAllResources(): Promise<Resource[]> {
-  const response = await fetch(`${API_BASE_URL}/resources/?limit=100000`);
+  const response = await apiFetch("/resources/?limit=100000");
   return response.json();
 }
 
@@ -299,9 +298,8 @@ async function postForImport(
   payload: unknown,
 ): Promise<ImportResult> {
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await apiFetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     if (response.ok) return { outcome: "added" };

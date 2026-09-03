@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiClient";
 import { ResourceFormValues, resourceSchema } from "@/lib/resourceSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle } from "lucide-react";
@@ -39,9 +40,8 @@ export default function AddResourceModal({
 
   const onSubmit = async (data: ResourceFormValues) => {
     try {
-      const response = await fetch("http://localhost:8000/resources/", {
+      const response = await apiFetch("/resources/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 

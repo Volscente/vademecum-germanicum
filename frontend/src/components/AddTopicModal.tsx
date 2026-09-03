@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiClient";
 import { TopicFormValues, topicSchema } from "@/lib/resourceSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle } from "lucide-react";
@@ -31,9 +32,8 @@ export default function AddTopicModal({ onTopicAdded }: AddTopicModalProps) {
 
   const onSubmit = async (data: TopicFormValues) => {
     try {
-      const response = await fetch("http://localhost:8000/topics/", {
+      const response = await apiFetch("/topics/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 

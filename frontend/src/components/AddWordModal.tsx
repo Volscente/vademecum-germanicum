@@ -1,4 +1,5 @@
 import { checkWordExists, enrichWord } from "@/lib/api";
+import { apiFetch } from "@/lib/apiClient";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,9 +97,8 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
 
   const onSubmit = async (data: WordFormValues) => {
     try {
-      const response = await fetch("http://localhost:8000/words/", {
+      const response = await apiFetch("/words/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 

@@ -2,6 +2,7 @@ import { Sense, SenseWithWord, Word, WordEnrichment } from "@/types/word";
 import { WordFormValues } from "@/lib/wordSchema";
 import { Resource, Topic } from "@/types/resource";
 import { ResourceFormValues, TopicFormValues } from "@/lib/resourceSchema";
+import { apiFetch } from "@/lib/apiClient";
 
 /**
  * Call POST /words/enrich and return the enriched word metadata.
@@ -11,9 +12,8 @@ import { ResourceFormValues, TopicFormValues } from "@/lib/resourceSchema";
  * @throws Error if the HTTP response status is not ok (4xx / 5xx).
  */
 export async function enrichWord(word: string): Promise<WordEnrichment> {
-  const response = await fetch("http://localhost:8000/words/enrich", {
+  const response = await apiFetch("/words/enrich", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ word }),
   });
 
@@ -31,7 +31,7 @@ export async function enrichWord(word: string): Promise<WordEnrichment> {
  * @throws Error if the HTTP response status is not ok (4xx / 5xx).
  */
 export async function getSenses(): Promise<SenseWithWord[]> {
-  const response = await fetch("http://localhost:8000/senses/");
+  const response = await apiFetch("/senses/");
 
   if (!response.ok) {
     throw new Error(`Failed to fetch senses: ${response.status}`);
@@ -55,14 +55,10 @@ export async function updateSenseReview(
   senseId: number,
   difficultyLevel: string,
 ): Promise<Sense> {
-  const response = await fetch(
-    `http://localhost:8000/senses/${senseId}/review`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ difficulty_level: difficultyLevel }),
-    },
-  );
+  const response = await apiFetch(`/senses/${senseId}/review`, {
+    method: "PUT",
+    body: JSON.stringify({ difficulty_level: difficultyLevel }),
+  });
 
   if (!response.ok) {
     throw new Error(`Review update failed: ${response.status}`);
@@ -83,9 +79,8 @@ export async function updateWord(
   wordId: number,
   payload: WordFormValues,
 ): Promise<Word> {
-  const response = await fetch(`http://localhost:8000/words/${wordId}`, {
+  const response = await apiFetch(`/words/${wordId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -117,8 +112,8 @@ export async function checkWordExists(word: string): Promise<boolean> {
     return false;
   }
 
-  const response = await fetch(
-    `http://localhost:8000/words/?search=${encodeURIComponent(word)}&limit=500`,
+  const response = await apiFetch(
+    `/words/?search=${encodeURIComponent(word)}&limit=500`,
   );
 
   if (!response.ok) {
@@ -141,9 +136,8 @@ export async function checkWordExists(word: string): Promise<boolean> {
 export async function createResource(
   payload: ResourceFormValues,
 ): Promise<Resource> {
-  const response = await fetch("http://localhost:8000/resources/", {
+  const response = await apiFetch("/resources/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -170,14 +164,10 @@ export async function updateResource(
   resourceId: number,
   payload: ResourceFormValues,
 ): Promise<Resource> {
-  const response = await fetch(
-    `http://localhost:8000/resources/${resourceId}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    },
-  );
+  const response = await apiFetch(`/resources/${resourceId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     const detail = await response.json().catch(() => ({}));
@@ -197,10 +187,9 @@ export async function updateResource(
  * @throws Error if the HTTP response status is not ok (4xx / 5xx).
  */
 export async function deleteResource(resourceId: number): Promise<void> {
-  const response = await fetch(
-    `http://localhost:8000/resources/${resourceId}`,
-    { method: "DELETE" },
-  );
+  const response = await apiFetch(`/resources/${resourceId}`, {
+    method: "DELETE",
+  });
 
   if (!response.ok) {
     throw new Error(`Delete failed: ${response.status}`);
@@ -215,9 +204,8 @@ export async function deleteResource(resourceId: number): Promise<void> {
  * @throws Error if the HTTP response status is not ok (4xx / 5xx).
  */
 export async function createTopic(payload: TopicFormValues): Promise<Topic> {
-  const response = await fetch("http://localhost:8000/topics/", {
+  const response = await apiFetch("/topics/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -244,9 +232,8 @@ export async function updateTopic(
   topicId: number,
   payload: TopicFormValues,
 ): Promise<Topic> {
-  const response = await fetch(`http://localhost:8000/topics/${topicId}`, {
+  const response = await apiFetch(`/topics/${topicId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -268,7 +255,7 @@ export async function updateTopic(
  * @throws Error if the HTTP response status is not ok (4xx / 5xx).
  */
 export async function deleteTopic(topicId: number): Promise<void> {
-  const response = await fetch(`http://localhost:8000/topics/${topicId}`, {
+  const response = await apiFetch(`/topics/${topicId}`, {
     method: "DELETE",
   });
 

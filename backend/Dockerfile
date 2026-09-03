@@ -33,5 +33,6 @@ COPY backend ./backend
 # Final sync to install the project itself
 RUN uv sync --frozen
 
-# Run the FastAPI server
-CMD ["uv", "run", "--package", "backend", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the FastAPI server. Shell form so ${PORT} expands — Render injects PORT
+# for hosted deploys; local Docker Compose never sets it, so it falls back to 8000.
+CMD ["sh", "-c", "uv run --package backend uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

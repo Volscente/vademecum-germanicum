@@ -494,6 +494,7 @@ def read_resources(
     limit: int = 100,
     search: str | None = None,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> list[models.Resource]:
     """List resources, optionally filtered by a case-insensitive match on name or description.
 
@@ -507,7 +508,7 @@ def read_resources(
     Returns:
         List of `Resource` ORM instances.
     """
-    query = db.query(models.Resource)
+    query = db.query(models.Resource).filter(models.Resource.user_id == current_user.id)
 
     if search:
         search_filter = f"%{search}%"
@@ -528,6 +529,7 @@ def update_resource(
     resource_id: int,
     resource_update: schemas.ResourceUpdate,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> models.Resource:
     """Partially update a resource's fields.
 
@@ -544,7 +546,12 @@ def update_resource(
         HTTPException (409): If the updated URL collides with another resource's URL.
     """
     db_resource = (
-        db.query(models.Resource).filter(models.Resource.id == resource_id).first()
+        db.query(models.Resource)
+        .filter(
+            models.Resource.id == resource_id,
+            models.Resource.user_id == current_user.id,
+        )
+        .first()
     )
 
     if not db_resource:
@@ -568,12 +575,21 @@ def update_resource(
 
 
 @app.delete("/resources/{resource_id}", status_code=204)
-def delete_resource(resource_id: int, db: Session = Depends(get_db)):
+def delete_resource(
+    resource_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     """
     Remove a resource from the database by its ID.
     """
     db_resource = (
-        db.query(models.Resource).filter(models.Resource.id == resource_id).first()
+        db.query(models.Resource)
+        .filter(
+            models.Resource.id == resource_id,
+            models.Resource.user_id == current_user.id,
+        )
+        .first()
     )
 
     if not db_resource:
@@ -588,7 +604,11 @@ def delete_resource(resource_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/topics/", response_model=schemas.TopicRead)
-def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)) -> models.Topic:
+def create_topic(
+    topic: schemas.TopicCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+) -> models.Topic:
     """Persist a new topic.
 
     Args:
@@ -599,10 +619,11 @@ def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)) -> m
         The persisted `Topic` ORM instance, serialized as `TopicRead`.
 
     Raises:
-        HTTPException (409): If a topic with the same label already exists
-                             (constraint: topics_label_key UNIQUE (label)).
+        HTTPException (409): If a topic with the same label already exists for
+                             this user (constraint: topics_user_id_label_key
+                             UNIQUE (user_id, label)).
     """
-    db_topic = models.Topic(**topic.model_dump())
+    db_topic = models.Topic(**topic.model_dump(), user_id=current_user.id)
     try:
         db.add(db_topic)
         db.commit()
@@ -617,7 +638,11 @@ def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)) -> m
 
 @app.get("/topics/", response_model=list[schemas.TopicRead])
 def read_topics(
-    response: Response, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
+    response: Response,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> list[models.Topic]:
     """List topics.
 
@@ -630,14 +655,17 @@ def read_topics(
     Returns:
         List of `Topic` ORM instances.
     """
-    query = db.query(models.Topic)
+    query = db.query(models.Topic).filter(models.Topic.user_id == current_user.id)
     response.headers["X-Total-Count"] = str(query.count())
     return query.offset(skip).limit(limit).all()
 
 
 @app.put("/topics/{topic_id}", response_model=schemas.TopicRead)
 def update_topic(
-    topic_id: int, topic_update: schemas.TopicUpdate, db: Session = Depends(get_db)
+    topic_id: int,
+    topic_update: schemas.TopicUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
 ) -> models.Topic:
     """Partially update a topic's fields.
 
@@ -653,7 +681,11 @@ def update_topic(
         HTTPException (404): If no topic with `topic_id` exists in the database.
         HTTPException (409): If the updated label collides with another topic's label.
     """
-    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+    db_topic = (
+        db.query(models.Topic)
+        .filter(models.Topic.id == topic_id, models.Topic.user_id == current_user.id)
+        .first()
+    )
 
     if not db_topic:
         raise HTTPException(
@@ -676,11 +708,19 @@ def update_topic(
 
 
 @app.delete("/topics/{topic_id}", status_code=204)
-def delete_topic(topic_id: int, db: Session = Depends(get_db)):
+def delete_topic(
+    topic_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
     """
     Remove a topic from the database by its ID.
     """
-    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+    db_topic = (
+        db.query(models.Topic)
+        .filter(models.Topic.id == topic_id, models.Topic.user_id == current_user.id)
+        .first()
+    )
 
     if not db_topic:
         raise HTTPException(

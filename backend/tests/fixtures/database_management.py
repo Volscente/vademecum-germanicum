@@ -20,48 +20,54 @@ def apply_migrations():
     vademecum_db container regardless of when the container was first created.
     """
     with engine.connect() as conn:
-        conn.execute(
-            text(
-                """
-                DO $$
-                BEGIN
-                    IF NOT EXISTS (
-                        SELECT 1 FROM pg_constraint WHERE conname = 'words_word_key'
-                    ) THEN
-                        ALTER TABLE words ADD CONSTRAINT words_word_key UNIQUE (word);
-                    END IF;
-                END $$;
-                """
+        # Drop the old single-column unique constraints, if this container
+        # predates per-user ownership.
+        for table, old_constraint in (
+            ("words", "words_word_key"),
+            ("resources", "resources_url_key"),
+            ("topics", "topics_label_key"),
+        ):
+            conn.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS {old_constraint};"))
+
+        # Add user_id (nullable here — pre-existing local rows have no owner;
+        # NOT NULL is enforced by models.py for freshly-created tables only).
+        for table in ("words", "resources", "topics"):
+            conn.execute(
+                text(
+                    f"""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM information_schema.columns
+                            WHERE table_name = '{table}' AND column_name = 'user_id'
+                        ) THEN
+                            ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES users(id);
+                        END IF;
+                    END $$;
+                    """
+                )
             )
-        )
-        conn.execute(
-            text(
-                """
-                DO $$
-                BEGIN
-                    IF NOT EXISTS (
-                        SELECT 1 FROM pg_constraint WHERE conname = 'resources_url_key'
-                    ) THEN
-                        ALTER TABLE resources ADD CONSTRAINT resources_url_key UNIQUE (url);
-                    END IF;
-                END $$;
-                """
+
+        # New composite unique constraints scoped per-user.
+        for table, column, constraint in (
+            ("words", "word", "words_user_id_word_key"),
+            ("resources", "url", "resources_user_id_url_key"),
+            ("topics", "label", "topics_user_id_label_key"),
+        ):
+            conn.execute(
+                text(
+                    f"""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM pg_constraint WHERE conname = '{constraint}'
+                        ) THEN
+                            ALTER TABLE {table} ADD CONSTRAINT {constraint} UNIQUE (user_id, {column});
+                        END IF;
+                    END $$;
+                    """
+                )
             )
-        )
-        conn.execute(
-            text(
-                """
-                DO $$
-                BEGIN
-                    IF NOT EXISTS (
-                        SELECT 1 FROM pg_constraint WHERE conname = 'topics_label_key'
-                    ) THEN
-                        ALTER TABLE topics ADD CONSTRAINT topics_label_key UNIQUE (label);
-                    END IF;
-                END $$;
-                """
-            )
-        )
         conn.commit()
 
 

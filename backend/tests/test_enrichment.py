@@ -41,14 +41,14 @@ def mock_enrichment_result():
     )
 
 
-def test_enrich_word_success(client, mock_enrichment_result):
+def test_enrich_word_success(auth_client, mock_enrichment_result):
     """Ensure POST /words/enrich returns enrichment fields for a valid word."""
     with patch(
         "backend.main.enrich_word",
         new_callable=AsyncMock,
         return_value=mock_enrichment_result,
     ):
-        response = client.post("/words/enrich", json={"word": "Zuschlag"})
+        response = auth_client.post("/words/enrich", json={"word": "Zuschlag"})
 
     assert response.status_code == 200
     data = response.json()
@@ -66,19 +66,19 @@ def test_enrich_word_success(client, mock_enrichment_result):
     assert len(data["senses"][0]["example_sentences"]) >= 1
 
 
-def test_enrich_word_missing_field(client):
+def test_enrich_word_missing_field(auth_client):
     """Ensure POST /words/enrich with missing word field returns 422."""
-    response = client.post("/words/enrich", json={})
+    response = auth_client.post("/words/enrich", json={})
     assert response.status_code == 422
 
 
-def test_enrich_word_empty_string(client):
+def test_enrich_word_empty_string(auth_client):
     """Ensure POST /words/enrich with empty string returns 422."""
-    response = client.post("/words/enrich", json={"word": ""})
+    response = auth_client.post("/words/enrich", json={"word": ""})
     assert response.status_code == 422
 
 
-def test_enrich_word_agent_error(client):
+def test_enrich_word_agent_error(auth_client):
     """Ensure POST /words/enrich returns 422 when the agent raises an exception."""
     with patch(
         "backend.main.enrich_word",
@@ -87,13 +87,13 @@ def test_enrich_word_agent_error(client):
             status_code=422, detail="Enrichment failed: LLM provider unreachable"
         ),
     ):
-        response = client.post("/words/enrich", json={"word": "Zuschlag"})
+        response = auth_client.post("/words/enrich", json={"word": "Zuschlag"})
 
     assert response.status_code == 422
     assert "Enrichment failed" in response.json()["detail"]
 
 
-def test_enrich_endpoint_serialises_enums_as_strings(client):
+def test_enrich_endpoint_serialises_enums_as_strings(auth_client):
     """Verify that gender, category, register, and case are serialised as strings.
 
     The frontend Zod schema expects plain strings ("der", "noun", "Neutral",
@@ -130,7 +130,7 @@ def test_enrich_endpoint_serialises_enums_as_strings(client):
         new_callable=AsyncMock,
         return_value=mock_result,
     ):
-        response = client.post("/words/enrich", json={"word": "Haus"})
+        response = auth_client.post("/words/enrich", json={"word": "Haus"})
 
     assert response.status_code == 200
     body = response.json()
@@ -141,7 +141,7 @@ def test_enrich_endpoint_serialises_enums_as_strings(client):
     assert body["senses"][0]["grammar_patterns"][0]["case"] == "Nominativ"
 
 
-def test_enrich_word_returns_sense_array(client):
+def test_enrich_word_returns_sense_array(auth_client):
     """Ensure the enrichment response includes a senses array with nested structure."""
     mock_result = WordEnrichment(
         gender=GenderEnum.none,
@@ -174,7 +174,7 @@ def test_enrich_word_returns_sense_array(client):
         new_callable=AsyncMock,
         return_value=mock_result,
     ):
-        response = client.post("/words/enrich", json={"word": "warten"})
+        response = auth_client.post("/words/enrich", json={"word": "warten"})
 
     assert response.status_code == 200
     body = response.json()

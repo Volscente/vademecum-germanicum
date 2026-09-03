@@ -1,4 +1,5 @@
 import { enrichWord, updateWord } from "@/lib/api";
+import { apiFetch } from "@/lib/apiClient";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
 import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { Word } from "@/types/word";
@@ -150,7 +151,7 @@ export default function EditWordModal({
     if (!confirm(`Are you sure you want to delete "${word.word}"?`)) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/words/${word.id}`, {
+      const response = await apiFetch(`/words/${word.id}`, {
         method: "DELETE",
       });
 
