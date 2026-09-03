@@ -1,0 +1,41 @@
+backend/src/backend/main.py
+  s_f524d88944968e::t_fb0d8fb5d419ff 384-388
+  s_f524d88944968e::t_d2923a2840a44e 200
+  s_f524d88944968e::t_487c7e552773e4 427-431,437-441
+  s_f524d88944968e::t_65ca2a0e6be569 247
+  s_f524d88944968e::t_60aab30a5f4422 360-363
+  s_f524d88944968e::t_0ef833eda961ed 459-461
+  s_f524d88944968e::t_a62e7ddeb74583 317
+  s_f524d88944968e::t_3ffcacd8943a26 1,5,11,21,24
+  s_f524d88944968e::t_ff514f586c2a63 165-166
+  s_f524d88944968e::t_b35bc6c41e3deb 267-271
+  s_f524d88944968e::t_71fe4600fba8d4 223,228
+  s_f524d88944968e::t_0aa39fad3b6c91 77-144,146-149
+  s_f524d88944968e::t_5aa7fc7c4f0611 288-289,293-295
+  s_f524d88944968e::t_59f01bc1847b5a 473-475,477
+  s_f524d88944968e::t_6becf362444e60 336-342
+backend/src/backend/models.py
+  s_f524d88944968e::t_bc1e1f89504b27 173-175,178
+  s_f524d88944968e::t_92d0da97699411 205,214-216,219,227-228,236-238,241,244-245
+  s_f524d88944968e::t_dd344f910c8ef2 90-109
+backend/src/backend/auth.py
+  s_f524d88944968e::t_0ead218325c528 1-80
+backend/src/backend/schemas.py
+  s_f524d88944968e::t_e6f39c6e38b7a3 21-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b15ce050b53f650f1f4e2f08242105c68c86c9e5",
+  "prompts": {},
+  "sessions": {
+    "s_f524d88944968e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcf2d709-68af-4ccb-8987-79f65e2adc43",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
