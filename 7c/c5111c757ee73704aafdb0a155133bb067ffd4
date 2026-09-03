@@ -1,0 +1,19 @@
+frontend/src/components/ReviewArea.tsx
+  s_f524d88944968e::t_2eaecf853fb462 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "7cc5111c757ee73704aafdb0a155133bb067ffd4",
+  "prompts": {},
+  "sessions": {
+    "s_f524d88944968e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcf2d709-68af-4ccb-8987-79f65e2adc43",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
