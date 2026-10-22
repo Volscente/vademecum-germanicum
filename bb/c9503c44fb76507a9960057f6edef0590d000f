@@ -1,0 +1,25 @@
+.claude/hotfix/92-fix-add-another-example/hotfix-description.md
+  s_b7cb52650f9d51::t_3dda39caae9304 2-3,5,8-9,11-16,19-22,27,29-30,33,37-40,44-50,53-54,56-57,59,61-63,67-70
+  h_68a16e6033d539 1,4,6-7,10,17-18,23-26,28,31-32,34-36,41-43,51-52,55,58,60,64-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "bbc9503c44fb76507a9960057f6edef0590d000f",
+  "prompts": {},
+  "humans": {
+    "h_68a16e6033d539": {
+      "author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_b7cb52650f9d51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d52037de-2b07-48ca-9904-4908ec11c5c7",
+        "model": "unknown"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
