@@ -1,0 +1,39 @@
+frontend/README.md
+  s_b7cb52650f9d51::t_7fd467c2d293ff 85-89
+  s_b7cb52650f9d51::t_80b00c5b36ad2e 36
+  s_b7cb52650f9d51::t_fded4603340a03 16
+pyproject.toml
+  h_68a16e6033d539 3
+frontend/src/components/ExampleSentenceFields.tsx
+  s_b7cb52650f9d51::t_af0421d3aebf41 1-110
+frontend/src/components/AddWordModal.tsx
+  s_b7cb52650f9d51::t_a71455dd89137e 3
+  s_b7cb52650f9d51::t_5741e8e3d2e3ec 347-352
+CHANGELOG.md
+  s_b7cb52650f9d51::t_0a209e2b4b07fe 8-13
+backend/pyproject.toml
+  s_b7cb52650f9d51::t_8921ff3153924b 3
+frontend/package.json
+  s_b7cb52650f9d51::t_0299280564c9dd 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "7cf798092792137c135a1ebdce0339a89d2096ef",
+  "prompts": {},
+  "humans": {
+    "h_68a16e6033d539": {
+      "author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_b7cb52650f9d51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d52037de-2b07-48ca-9904-4908ec11c5c7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
