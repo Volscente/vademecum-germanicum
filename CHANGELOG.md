@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.15] - 2026-10-22
+
+### Fixed
+
+- **Frontend**: The "Add New Word" form now lets users add and remove as many example sentences as they want per sense. The new `ExampleSentenceFields` component (nested `useFieldArray`, modelled on `GrammarPatternFields`) replaces the fixed, non-editable example-sentence rows in `AddWordModal`, with visible "German" and "English" labels so the two parts of each sentence are easy to tell apart (closes #92).
+
 ## [0.4.14] - 2026-08-27
 
 ### Added
