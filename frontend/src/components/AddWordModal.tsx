@@ -1,5 +1,6 @@
 import { checkWordExists, enrichWord } from "@/lib/api";
 import { WordFormValues, wordSchema } from "@/lib/wordSchema";
+import ExampleSentenceFields from "@/components/ExampleSentenceFields";
 import GrammarPatternFields from "@/components/GrammarPatternFields";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle, Sparkles, Trash2 } from "lucide-react";
@@ -53,7 +54,6 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
     name: "senses",
   });
 
-  const watchedSenses = watch("senses") ?? [];
   const watchedCategory = watch("category");
   const wordValue = watch("word");
 
@@ -344,31 +344,12 @@ export default function AddWordModal({ onWordAdded }: AddWordModalProps) {
                       />
 
                       {/* Example Sentences */}
-                      <div>
-                        <p className="text-xs font-medium text-forest-600 dark:text-forest-300 mb-1">
-                          Example Sentences
-                        </p>
-                        {(watchedSenses[sIdx]?.example_sentences ?? []).map(
-                          (_, exIdx) => (
-                            <div key={exIdx} className="space-y-1 mt-1">
-                              <input
-                                {...register(
-                                  `senses.${sIdx}.example_sentences.${exIdx}.german`,
-                                )}
-                                placeholder="German sentence"
-                                className={inputClass}
-                              />
-                              <input
-                                {...register(
-                                  `senses.${sIdx}.example_sentences.${exIdx}.english`,
-                                )}
-                                placeholder="English translation"
-                                className={inputClass}
-                              />
-                            </div>
-                          ),
-                        )}
-                      </div>
+                      <ExampleSentenceFields
+                        senseIndex={sIdx}
+                        control={control}
+                        errors={errors}
+                        register={register}
+                      />
                     </div>
                   ))}
                 </div>

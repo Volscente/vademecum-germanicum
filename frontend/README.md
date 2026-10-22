@@ -13,6 +13,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **`src/components/ReviewCompleteScreen.tsx`** — Session-end screen rendered when all cards in the review queue have been rated; two buttons to navigate back to the Vocabulary Area or Learning Area via `onNavigate`
 - **`src/components/SenseCard.tsx`** — Flashcard display for a single sense; three collapsible sections (Word Information, Verb Morphology, Sense Information); Verb Morphology rendered only when `category === "verb"`; four Difficulty Level buttons (Easy / Medium / Hard / Very Hard)
 - **`src/components/GrammarPatternFields.tsx`** — Reusable sub-component that owns the nested `useFieldArray` for grammar patterns inside a sense; renders preposition input + case select per row with Add/Remove controls; Remove is disabled when only one row remains
+- **`src/components/ExampleSentenceFields.tsx`** — Reusable sub-component that owns the nested `useFieldArray` for example sentences inside a sense; renders a card per row with labelled German / English inputs and per-field error messages, plus Add/Remove controls; Remove is disabled when only one row remains
 - **`src/components/AddWordModal.tsx`** — Modal form for creating a new word entry; includes an "Enrich" button that calls the AI enrichment API to pre-populate fields; uses `GrammarPatternFields` per sense for multi-row grammar pattern editing; debounces `checkWordExists` (300 ms) on the `word` field and surfaces a duplicate warning via `setError("word", ...)`, with a `POST /words/` 409 response handled as a fallback in `onSubmit`; both the "Enrich" and "Save Word" buttons are disabled (with a `title` tooltip on Enrich) while `isDuplicate` is `true`
 - **`src/components/EditWordModal.tsx`** — Full edit form for updating word data (all fields including nested senses) with a delete action; opened by clicking a row in WordTable; uses `GrammarPatternFields` per sense inside a collapsible Grammar Patterns card
 - **`src/components/WordTable.tsx`** — Displays the vocabulary as a clickable table; clicking a row opens EditWordModal
@@ -32,6 +33,7 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - `<AreaToggle area onAreaChange>` — pill toggle between `"vocabulary"` and `"learning"`; not rendered when `area === "review"`
 - `<SensesTable onStartReview>` — senses table with multi-select checkboxes and "Start Review" button; calls `onStartReview(selected: SenseWithWord[])` to hand off the review queue
 - `<GrammarPatternFields senseIndex control errors register>` — nested field-array block for grammar patterns; `senseIndex: number`, `control: Control<WordFormValues>`, `errors: FieldErrors<WordFormValues>`, `register: UseFormRegister<WordFormValues>`; used inside the sense loop of both modals
+- `<ExampleSentenceFields senseIndex control errors register>` — nested field-array block for example sentences; same props as `GrammarPatternFields`; used inside the sense loop of `AddWordModal`
 - `<AddWordModal onWordAdded>` — button + modal to create a word; calls `onWordAdded()` after a successful save
 - `<EditWordModal word isOpen onClose onWordDeleted onWordUpdated>` — full edit form for all word fields including senses; calls `onWordUpdated` after a successful save and `onWordDeleted` after deletion
 - `<WordTable words onRefresh>` — renders the vocabulary table; calls `onRefresh()` after a deletion
@@ -79,6 +81,11 @@ A Next.js 16 single-page application that provides the user interface for Vademe
 - **Backend persistence logic** — handled entirely by the FastAPI backend and PostgreSQL
 
 ## Changelog
+
+### 2026-10-22 (v0.4.15)
+
+- Added `ExampleSentenceFields.tsx`: nested `useFieldArray` sub-component for a sense's example sentences with "Add Example Sentence" and per-row Remove (disabled when one row remains); each row shows labelled "German" and "English" inputs with Zod error messages; new rows are appended as `{ german: "", english: "" }`.
+- Updated `AddWordModal.tsx`: replaced the inline, non-editable example-sentence block (a `.map()` over `watch("senses")` keyed by index) with `<ExampleSentenceFields>`; removed the now-unused `watchedSenses`.
 
 ### 2026-08-21 (v0.4.12)
 
