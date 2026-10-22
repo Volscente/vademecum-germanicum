@@ -1,0 +1,25 @@
+.claude/hotfix/92-fix-add-another-example/hotfix-tech-spec.md
+  s_b7cb52650f9d51::t_f918cd516c52ec 76
+  s_b7cb52650f9d51::t_a5fadff99df31c 1-75,77-135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "5d4975f20158810bd9398bd007d886f845e36a36",
+  "prompts": {},
+  "humans": {
+    "h_68a16e6033d539": {
+      "author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_b7cb52650f9d51": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d52037de-2b07-48ca-9904-4908ec11c5c7",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Simone Porreca <porrecasimone@gmail.com>"
+    }
+  }
+}
